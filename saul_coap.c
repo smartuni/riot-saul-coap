@@ -26,10 +26,12 @@
 extern char *make_msg(char *, ...);
 
 static ssize_t _saul_cnt_handler(coap_pkt_t* pdu, uint8_t *buf, size_t len, void *ctx);
+static ssize_t _saul_dev_handler(coap_pkt_t* pdu, uint8_t *buf, size_t len, void *ctx);
 
 /* CoAP resources. Must be sorted by path (ASCII order). */
 static const coap_resource_t _resources[] = {
-    { "/saul", COAP_GET, _saul_cnt_handler, NULL },
+    { "/saul/cnt", COAP_GET, _saul_cnt_handler, NULL },
+    { "/saul/dev", COAP_POST, _saul_dev_handler, NULL },
 };
 
 static gcoap_listener_t _listener = {
@@ -37,6 +39,62 @@ static gcoap_listener_t _listener = {
     sizeof(_resources) / sizeof(_resources[0]),
     NULL
 };
+
+static ssize_t _saul_dev_handler(coap_pkt_t* pdu, uint8_t *buf, size_t len, void *ctx)
+{
+    int pos = 0;
+
+    (void)ctx;
+
+    if (pdu->payload_len <= 5) {
+        char req_payl[6] = { 0 };
+        memcpy(req_payl, (char *)pdu->payload, pdu->payload_len);
+        pos = strtoul(req_payl, NULL, 10);
+    }
+    else {
+        return gcoap_response(pdu, buf, len, COAP_CODE_BAD_REQUEST);
+    }
+
+    gcoap_resp_init(pdu, buf, len, COAP_CODE_CONTENT);
+    coap_opt_add_format(pdu, COAP_FORMAT_TEXT);
+    size_t resp_len = coap_opt_finish(pdu, COAP_OPT_FINISH_PAYLOAD);
+
+    saul_reg_t *dev = saul_reg_find_nth(pos);
+
+    if (!dev) {
+        char *err = "device not found";
+
+        if (pdu->payload_len >= strlen(err)) {
+            memcpy(pdu->payload, err, strlen(err));
+            gcoap_response(pdu, buf, len, COAP_CODE_404);
+            return resp_len + strlen(err);
+        }
+        else {
+            puts("saul_coap: msg buffer too small for payload");
+            return gcoap_response(pdu, buf, len, COAP_CODE_INTERNAL_SERVER_ERROR);
+        }
+    }
+    else {
+        char *payl = make_msg("%i,%s,%s\n",
+                              pos,
+                              saul_class_to_str(dev->driver->type),
+                              dev->name);
+
+        if (pdu->payload_len >= strlen(payl)) {
+            memcpy(pdu->payload, payl, strlen(payl));
+	    free(payl);
+            gcoap_response(pdu, buf, len, COAP_CODE_204);
+            return resp_len + strlen(payl);
+        }
+        else {
+            printf("saul_coap: msg buffer (size: %d) too small"
+                   " for payload (size: %d)\n",
+                   pdu->payload_len, strlen(payl));
+	    free(payl);
+            return gcoap_response(pdu, buf, len, COAP_CODE_INTERNAL_SERVER_ERROR);
+        }
+    }
+}
 
 static ssize_t _saul_cnt_handler(coap_pkt_t* pdu, uint8_t *buf, size_t len, void *ctx)
 {
@@ -71,14 +129,14 @@ static ssize_t _saul_cnt_handler(coap_pkt_t* pdu, uint8_t *buf, size_t len, void
 
     if (pdu->payload_len >= strlen(payl)) {
         memcpy(pdu->payload, payl, strlen(payl));
-        free(payl)
+        free(payl);
         return resp_len + strlen(payl);
     }
     else {
         printf("saul_coap: msg buffer (size: %d) too small"
                " for payload (size: %d)\n",
                pdu->payload_len, strlen(payl));
-        free(payl)
+        free(payl);
         return gcoap_response(pdu, buf, len, COAP_CODE_INTERNAL_SERVER_ERROR);
     }
 
