@@ -22,10 +22,14 @@
 
 #include "shell.h"
 
+extern void saul_coap_init(void);
+
 int main(void)
 {
     puts("Welcome to RIOT!\n");
     puts("Type `help` for help, type `saul` to see all SAUL devices\n");
+
+    saul_coap_init();
 
     char line_buf[SHELL_DEFAULT_BUFSIZE];
     shell_run(NULL, line_buf, SHELL_DEFAULT_BUFSIZE);
