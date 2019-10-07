@@ -159,26 +159,38 @@ static ssize_t _sense_type_responder(coap_pkt_t* pdu, uint8_t *buf, size_t len, 
     int dim;
     size_t resp_len;
 
+    gcoap_resp_init(pdu, buf, len, COAP_CODE_CONTENT);
+    coap_opt_add_format(pdu, COAP_FORMAT_TEXT);
+    resp_len = coap_opt_finish(pdu, COAP_OPT_FINISH_PAYLOAD);
+
     if (dev == NULL) {
-	/* TODO: Take care of this error. */
-	printf("ERR: device not found\n");
-	return -1;
+	char *err = "device not found";
+	if (pdu->payload_len >= strlen(err)) {
+	    memcpy(pdu->payload, err, strlen(err));
+	    resp_len += gcoap_response(pdu, buf, len, COAP_CODE_404);
+	    return resp_len;
+	}
+	else {
+	    return gcoap_response(pdu, buf, len, COAP_CODE_404);
+	}
     }
 
     dim = saul_reg_read(dev, &res);
     if (dim <= 0) {
-	/* TODO: Take care of this error. */
-	printf("ERR: could not read a value\n");
-	return -2;
+	char *err = "no values found";
+	if (pdu->payload_len >= strlen(err)) {
+	    memcpy(pdu->payload, err, strlen(err));
+	    resp_len += gcoap_response(pdu, buf, len, COAP_CODE_404);
+	    return resp_len;
+	}
+	else {
+	    return gcoap_response(pdu, buf, len, COAP_CODE_404);
+	}
     }
 
     /* TODO: Take care of all values. */
     /* for (uint8_t i = 0; i < dim; i++) {
        } */
-
-    gcoap_resp_init(pdu, buf, len, COAP_CODE_CONTENT);
-    coap_opt_add_format(pdu, COAP_FORMAT_TEXT);
-    resp_len = coap_opt_finish(pdu, COAP_OPT_FINISH_PAYLOAD);
 
     /* write the response buffer with the request device value */
     resp_len += fmt_u16_dec((char *)pdu->payload, res.val[0]);
