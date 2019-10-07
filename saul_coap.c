@@ -29,6 +29,7 @@ extern char *make_msg(char *, ...);
 static ssize_t _saul_cnt_handler(coap_pkt_t* pdu, uint8_t *buf, size_t len, void *ctx);
 static ssize_t _saul_dev_handler(coap_pkt_t* pdu, uint8_t *buf, size_t len, void *ctx);
 static ssize_t _sense_temp_handler(coap_pkt_t* pdu, uint8_t *buf, size_t len, void *ctx);
+static ssize_t _sense_type_responder(coap_pkt_t* pdu, uint8_t *buf, size_t len, uint8_t type);
 
 /* CoAP resources. Must be sorted by path (ASCII order). */
 static const coap_resource_t _resources[] = {
@@ -149,9 +150,10 @@ static ssize_t _saul_cnt_handler(coap_pkt_t* pdu, uint8_t *buf, size_t len, void
 static ssize_t _sense_temp_handler(coap_pkt_t* pdu, uint8_t *buf, size_t len, void *ctx)
 {
     (void)ctx;
+    return _sense_type_responder(pdu, buf, len, SAUL_SENSE_TEMP);
+}
 
-    uint8_t type = SAUL_SENSE_TEMP;
-
+static ssize_t _sense_type_responder(coap_pkt_t* pdu, uint8_t *buf, size_t len, uint8_t type) {
     saul_reg_t *dev = saul_reg_find_type(type);
     phydat_t res;
     int dim;
