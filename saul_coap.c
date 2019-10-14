@@ -110,6 +110,10 @@ static ssize_t _saul_cnt_handler(coap_pkt_t* pdu, uint8_t *buf, size_t len, void
     saul_reg_t *dev = saul_reg;
     int i = 0;
 
+    unsigned char query[NANOCOAP_URI_MAX] = { 0 };
+    int size = coap_get_uri_query(pdu, query);
+    printf("Query size is %d\nQuery: %s\n", size, query);
+
     (void)ctx;
 
     gcoap_resp_init(pdu, buf, len, COAP_CODE_CONTENT);
