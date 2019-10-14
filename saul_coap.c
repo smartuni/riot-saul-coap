@@ -121,13 +121,6 @@ static ssize_t _saul_cnt_handler(coap_pkt_t* pdu, uint8_t *buf, size_t len, void
     }
     else {
         while (dev) {
-            /*
-            payl = make_msg("%s%i,%s\n",
-                            payl,
-                            i++,
-                            saul_class_to_str(dev->driver->type),
-                            dev->name);
-            */
             i++;
             dev = dev->next;
         }
