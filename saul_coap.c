@@ -108,7 +108,6 @@ static ssize_t _saul_cnt_handler(coap_pkt_t* pdu, uint8_t *buf, size_t len, void
 {
     saul_reg_t *dev = saul_reg;
     int i = 0;
-    char *payl;
 
     (void)ctx;
 
@@ -116,32 +115,13 @@ static ssize_t _saul_cnt_handler(coap_pkt_t* pdu, uint8_t *buf, size_t len, void
     coap_opt_add_format(pdu, COAP_FORMAT_TEXT);
     size_t resp_len = coap_opt_finish(pdu, COAP_OPT_FINISH_PAYLOAD);
 
-    if (!dev) {
-        payl = make_msg("No devices found");
-    }
-    else {
-        while (dev) {
-            i++;
-            dev = dev->next;
-        }
-
-        payl = make_msg("%d devices available", i);
+    while (dev) {
+        i++;
+        dev = dev->next;
     }
 
-    if (pdu->payload_len >= strlen(payl)) {
-        memcpy(pdu->payload, payl, strlen(payl));
-        free(payl);
-        return resp_len + strlen(payl);
-    }
-    else {
-        printf("saul_coap: msg buffer (size: %d) too small"
-               " for payload (size: %d)\n",
-               pdu->payload_len, strlen(payl));
-        free(payl);
-        return gcoap_response(pdu, buf, len, COAP_CODE_INTERNAL_SERVER_ERROR);
-    }
-
-    return 0;
+    resp_len += fmt_u16_dec((char *)pdu->payload, i);
+    return resp_len;
 }
 
 static ssize_t _sense_temp_handler(coap_pkt_t* pdu, uint8_t *buf, size_t len, void *ctx)
