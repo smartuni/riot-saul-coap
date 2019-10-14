@@ -29,10 +29,12 @@ extern char *make_msg(char *, ...);
 static ssize_t _saul_cnt_handler(coap_pkt_t* pdu, uint8_t *buf, size_t len, void *ctx);
 static ssize_t _saul_dev_handler(coap_pkt_t* pdu, uint8_t *buf, size_t len, void *ctx);
 static ssize_t _sense_temp_handler(coap_pkt_t* pdu, uint8_t *buf, size_t len, void *ctx);
+static ssize_t _sense_hum_handler(coap_pkt_t* pdu, uint8_t *buf, size_t len, void *ctx);
 static ssize_t _sense_type_responder(coap_pkt_t* pdu, uint8_t *buf, size_t len, uint8_t type);
 
 /* CoAP resources. Must be sorted by path (ASCII order). */
 static const coap_resource_t _resources[] = {
+    { "/hum", COAP_GET, _sense_hum_handler, NULL },
     { "/saul/cnt", COAP_GET, _saul_cnt_handler, NULL },
     { "/saul/dev", COAP_POST, _saul_dev_handler, NULL },
     { "/temp", COAP_GET, _sense_temp_handler, NULL },
@@ -151,6 +153,12 @@ static ssize_t _sense_temp_handler(coap_pkt_t* pdu, uint8_t *buf, size_t len, vo
 {
     (void)ctx;
     return _sense_type_responder(pdu, buf, len, SAUL_SENSE_TEMP);
+}
+
+static ssize_t _sense_hum_handler(coap_pkt_t* pdu, uint8_t *buf, size_t len, void *ctx)
+{
+    (void)ctx;
+    return _sense_type_responder(pdu, buf, len, SAUL_SENSE_HUM);
 }
 
 static ssize_t _sense_type_responder(coap_pkt_t* pdu, uint8_t *buf, size_t len, uint8_t type) {
