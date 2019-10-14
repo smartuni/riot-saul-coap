@@ -25,7 +25,7 @@ out of the box. However, the systems calling this resource, need
 information about the RIOT-intern saul type IDs. This could be used by
 other RIOT powered boards.
 
-[saul.h]: https://github.com/RIOT-OS/RIOT/blob/d42c032998e77e122380b3d270ceedb7fff48cda/drivers/include/saul.h#L74)
+[saul.h]: https://github.com/RIOT-OS/RIOT/blob/d42c032998e77e122380b3d270ceedb7fff48cda/drivers/include/saul.h#L74
 
 ### `/saul/cnt` and `/saul/dev` (incomplete)
 The idea of these resources is, to offer similar functionality as the
