@@ -90,7 +90,7 @@ static ssize_t _saul_dev_handler(coap_pkt_t* pdu, uint8_t *buf, size_t len, void
 
         if (pdu->payload_len >= strlen(payl)) {
             memcpy(pdu->payload, payl, strlen(payl));
-	    free(payl);
+            free(payl);
             gcoap_response(pdu, buf, len, COAP_CODE_204);
             return resp_len + strlen(payl);
         }
@@ -98,7 +98,7 @@ static ssize_t _saul_dev_handler(coap_pkt_t* pdu, uint8_t *buf, size_t len, void
             printf("saul_coap: msg buffer (size: %d) too small"
                    " for payload (size: %d)\n",
                    pdu->payload_len, strlen(payl));
-	    free(payl);
+            free(payl);
             return gcoap_response(pdu, buf, len, COAP_CODE_INTERNAL_SERVER_ERROR);
         }
     }
@@ -117,7 +117,7 @@ static ssize_t _saul_cnt_handler(coap_pkt_t* pdu, uint8_t *buf, size_t len, void
     size_t resp_len = coap_opt_finish(pdu, COAP_OPT_FINISH_PAYLOAD);
 
     if (!dev) {
-	payl = make_msg("No devices found");
+        payl = make_msg("No devices found");
     }
     else {
         while (dev) {
@@ -125,7 +125,7 @@ static ssize_t _saul_cnt_handler(coap_pkt_t* pdu, uint8_t *buf, size_t len, void
             dev = dev->next;
         }
 
-	payl = make_msg("%d devices available", i);
+        payl = make_msg("%d devices available", i);
     }
 
     if (pdu->payload_len >= strlen(payl)) {
@@ -186,28 +186,28 @@ static ssize_t _sense_type_responder(coap_pkt_t* pdu, uint8_t *buf, size_t len, 
     resp_len = coap_opt_finish(pdu, COAP_OPT_FINISH_PAYLOAD);
 
     if (dev == NULL) {
-	char *err = "device not found";
-	if (pdu->payload_len >= strlen(err)) {
-	    memcpy(pdu->payload, err, strlen(err));
-	    resp_len += gcoap_response(pdu, buf, len, COAP_CODE_404);
-	    return resp_len;
-	}
-	else {
-	    return gcoap_response(pdu, buf, len, COAP_CODE_404);
-	}
+        char *err = "device not found";
+        if (pdu->payload_len >= strlen(err)) {
+            memcpy(pdu->payload, err, strlen(err));
+            resp_len += gcoap_response(pdu, buf, len, COAP_CODE_404);
+            return resp_len;
+        }
+        else {
+            return gcoap_response(pdu, buf, len, COAP_CODE_404);
+        }
     }
 
     dim = saul_reg_read(dev, &res);
     if (dim <= 0) {
-	char *err = "no values found";
-	if (pdu->payload_len >= strlen(err)) {
-	    memcpy(pdu->payload, err, strlen(err));
-	    resp_len += gcoap_response(pdu, buf, len, COAP_CODE_404);
-	    return resp_len;
-	}
-	else {
-	    return gcoap_response(pdu, buf, len, COAP_CODE_404);
-	}
+        char *err = "no values found";
+        if (pdu->payload_len >= strlen(err)) {
+            memcpy(pdu->payload, err, strlen(err));
+            resp_len += gcoap_response(pdu, buf, len, COAP_CODE_404);
+            return resp_len;
+        }
+        else {
+            return gcoap_response(pdu, buf, len, COAP_CODE_404);
+        }
     }
 
     /* TODO: Take care of all values. */
