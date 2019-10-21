@@ -17,10 +17,9 @@ manually added to the code base. These paths can be used without
 knowledge about the RIOT-intern type representation.
 
 ### `/sensor`
-The `/sensor` resource is reachable with an `POST` request. As payload
+The `/sensor` resource is reachable with an `GET` request. As payload
 it needs the ID of a saul sensor type (as they are defined in
-[`drivers/include/saul.h`][saul.h]). It will return the values of the
-first sensor of the requested sensor type. All sensor types will work
+[`drivers/include/saul.h`][saul.h]). GET command has parameter of a 3-digit decimal number to specify sensor type. The query parameter is class.  It will return the values of the first sensor of the requested sensor type. All sensor types will work
 out of the box. However, the systems calling this resource, need
 information about the RIOT-intern saul type IDs. This could be used by
 other RIOT powered boards.
@@ -35,7 +34,8 @@ The idea of these resources is, to offer similar functionality as the
   to the board. This can be used to know, what IDs can be used to
   request information about connected sensors.
 - `/saul/dev` (POST) needs an ID as argument. Returns some information
-  about the sensor for that ID (name and type).
+  about the sensor for that ID (name and type). 
+
 
 ## Build and Execute
 Enter shell with board command (Phytec)
