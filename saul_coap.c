@@ -20,6 +20,7 @@
 
 #include <assert.h>
 #include <stdio.h>
+#include <string.h>
 #include "saul_reg.h"
 #include "fmt.h"
 #include "net/gcoap.h"
@@ -38,7 +39,7 @@ static const coap_resource_t _resources[] = {
     { "/hum", COAP_GET, _sense_hum_handler, NULL },
     { "/saul/cnt", COAP_GET, _saul_cnt_handler, NULL },
     { "/saul/dev", COAP_POST, _saul_dev_handler, NULL },
-    { "/sensor", COAP_POST, _saul_sensortype_handler, NULL },
+    { "/sensor", COAP_GET, _saul_sensortype_handler, NULL },
     { "/temp", COAP_GET, _sense_temp_handler, NULL },
 };
 
@@ -139,18 +140,22 @@ static ssize_t _sense_hum_handler(coap_pkt_t* pdu, uint8_t *buf, size_t len, voi
 
 static ssize_t _saul_sensortype_handler(coap_pkt_t* pdu, uint8_t *buf, size_t len, void *ctx)
 {
+    unsigned char query[NANOCOAP_URI_MAX] = { 0 };
+    char type_number[4] = { 0 };
     uint8_t type;
 
     (void)ctx;
 
-    if (pdu->payload_len <= 5) {
-        char req_payl[6] = { 0 };
-        memcpy(req_payl, (char *)pdu->payload, pdu->payload_len);
-        type = atoi(req_payl);
-    }
-    else {
+    int size = coap_get_uri_query(pdu, query);
+
+    // FIXME: extract the type number from the query, which has to
+    // have the format `&class=123`; read number value from class key
+    if (size < 9 || size > 11) {
         return gcoap_response(pdu, buf, len, COAP_CODE_BAD_REQUEST);
     }
+    strncpy(type_number, (char *)query+7, 3);
+
+    type = atoi(type_number);
 
     return _sense_type_responder(pdu, buf, len, type);
 }
