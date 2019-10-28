@@ -171,7 +171,6 @@ static ssize_t _atr_type_responder(coap_pkt_t* pdu, uint8_t *buf, size_t len, ui
 {
     saul_reg_t *dev = saul_reg_find_type(type);
     phydat_t res;
-	phydat_dump(phydat_t *res, type);//phydat.h
     int dim;
     size_t resp_len;
     gcoap_resp_init(pdu, buf, len, COAP_CODE_CONTENT);
@@ -186,12 +185,12 @@ static ssize_t _atr_type_responder(coap_pkt_t* pdu, uint8_t *buf, size_t len, ui
 	    return resp_len;
 	}
 	else {
-	    return gcoap_response(pdu, buf, len, COAP_CODE_404);
+		phydat_dump(&res, type);//phydat.h
+    dim = saul_reg_write(dev, &res); // &res -as saul_reg_read store location or *res data to write? 
+	   // return gcoap_response(pdu, buf, len, COAP_CODE_404);
 	}
     }
-
-    dim = saul_reg_write(dev, &res); // &res -as saul_reg_read store location or *res data to write? 
-    if (dim <= 0) {
+	 if (dim <= 0) {
 	char *err = "no values found";
 	if (pdu->payload_len >= strlen(err)) {
 	    memcpy(pdu->payload, err, strlen(err));
@@ -202,7 +201,6 @@ static ssize_t _atr_type_responder(coap_pkt_t* pdu, uint8_t *buf, size_t len, ui
 	    return gcoap_response(pdu, buf, len, COAP_CODE_404);
 	}
     }
-
     /* write the response buffer with the request device value */
     resp_len += fmt_u16_dec((char *)pdu->payload, res.val[0]);
     return resp_len;
