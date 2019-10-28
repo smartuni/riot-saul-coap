@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+ "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <meta http-equiv="Content-Style-Type" content="text/css" />
+  <meta name="generator" content="pandoc" />
+  <meta name="author" content="@seojeongmoon &amp; @rosetree" />
+  <meta name="date" content="2019-10-28" />
+  <title>Sensor-Data via CoAP</title>
+  <style type="text/css">
+      code{white-space: pre-wrap;}
+      span.smallcaps{font-variant: small-caps;}
+      span.underline{text-decoration: underline;}
+      div.column{display: inline-block; vertical-align: top; width: 50%;}
+  </style>
+  <link rel="stylesheet" type="text/css" media="screen, projection, print"
+    href="https://www.w3.org/Talks/Tools/Slidy2/styles/slidy.css" />
+  <script src="https://www.w3.org/Talks/Tools/Slidy2/scripts/slidy.js"
+    charset="utf-8" type="text/javascript"></script>
+</head>
+<body>
+<div class="slide titlepage">
+  <h1 class="title">Sensor-Data via CoAP</h1>
+  <p class="author">
+<span class="citation">@seojeongmoon</span> &amp; <span class="citation">@rosetree</span>
+  </p>
+  <p class="date">2019-10-28</p>
+</div>
+<div id="general-idea" class="slide section level1">
+<h1>General Idea</h1>
+<p>Fetch sensor data via CoAP.</p>
+<p>Currently in 3 variants.</p>
+</div>
+<div id="coap-resources-v1" class="slide section level1">
+<h1>CoAP Resources v1</h1>
+<dl>
+<dt><code>GET /saul/cnt</code></dt>
+<dd><p>Count of connected saul devices (useful for debugging)</p>
+</dd>
+<dt><code>POST /saul/dev {id}</code></dt>
+<dd><p>Information for device with <code>{id}</code></p>
+</dd>
+</dl>
+</div>
+<div id="coap-resources-v2" class="slide section level1">
+<h1>CoAP Resources v2</h1>
+<p>Request by supported sensor types. No need for parameters or RIOT internal ids.</p>
+<ul>
+<li><code>GET /temp</code></li>
+<li><code>GET /hum</code></li>
+<li><code>GET /press</code></li>
+<li><code>GET /servo</code></li>
+<li><code>GET /voltage</code></li>
+</ul>
+</div>
+<div id="coap-resources-v3" class="slide section level1">
+<h1>CoAP Resources v3</h1>
+<p>Request by <em>all</em> sensor types. Need to set <code>class</code> parameter to RIOT interal class id.</p>
+<p><code>GET /sensor?class=130</code> (for temperature)</p>
+</div>
+<div id="how-to-use-on-your-node" class="slide section level1">
+<h1>How to use on your node</h1>
+<p>Code on <a href="https://github.com/rosetree/riot-saul-coap">github.com/rosetree/riot-saul-coap</a></p>
+<p>Copy <code>saul_coap.c</code> and <code>make_msg.c</code> into your project.</p>
+<p>Call <code>saul_coap_init()</code> from <code>main()</code>.</p>
+<p>Include used modules into your <code>Makefile</code>:</p>
+<pre><code>USEMODULE += gcoap
+USEMODULE += od
+USEMODULE += fmt
+USEMODULE += saul_default</code></pre>
+</div>
+<div id="questions-discussion" class="slide section level1">
+<h1>Questions &amp; Discussion</h1>
+<ul>
+<li>PUT saul actuator data (e.g. servo)</li>
+<li>include pkg into riot build system as module</li>
+<li>dynamically registering resources for all sensor types</li>
+<li>select between multiple temperature devices</li>
+</ul>
+</div>
+</body>
+</html>
