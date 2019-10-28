@@ -1,0 +1,59 @@
+% Sensor-Data via CoAP
+% @seojeongmoon & @rosetree
+% 2019-10-28
+
+# General Idea
+
+Fetch sensor data via CoAP.
+
+Currently in 3 variants.
+
+# CoAP Resources v1
+
+`GET /saul/cnt`
+
+:   Count of connected saul devices (useful for debugging)
+
+`POST /saul/dev {id}`
+
+:   Information for device with `{id}`
+
+# CoAP Resources v2
+
+Request by supported sensor types. No need for parameters or RIOT
+internal ids.
+
+- `GET /temp`
+- `GET /hum`
+- `GET /press`
+- `GET /servo`
+- `GET /voltage`
+
+# CoAP Resources v3
+
+Request by *all* sensor types. Need to set `class` parameter to RIOT
+interal class id.
+
+`GET /sensor?class=130` (for temperature)
+
+# How to use on your node
+
+Code on [github.com/rosetree/riot-saul-coap](https://github.com/rosetree/riot-saul-coap)
+
+Copy `saul_coap.c` and `make_msg.c` into your project.
+
+Call `saul_coap_init()` from `main()`.
+
+Include used modules into your `Makefile`:
+
+    USEMODULE += gcoap
+    USEMODULE += od
+    USEMODULE += fmt
+    USEMODULE += saul_default
+
+# Questions & Discussion
+
+- PUT saul actuator data (e.g. servo)
+- include pkg into riot build system as module
+- dynamically registering resources for all sensor types
+- select between multiple temperature devices
