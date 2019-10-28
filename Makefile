@@ -19,6 +19,7 @@ USEMODULE += gnrc_ipv6_default
 USEMODULE += gcoap
 # Additional networking modules that can be dropped if not needed
 USEMODULE += gnrc_icmpv6_echo
+USEMODULE += gnrc_icmpv6_error
 
 # Specify the mandatory networking modules for IPv6 routing
 USEMODULE += gnrc_ipv6_router_default
