@@ -20,6 +20,9 @@ USEMODULE += gcoap
 # Additional networking modules that can be dropped if not needed
 USEMODULE += gnrc_icmpv6_echo
 
+# Specify the mandatory networking modules for IPv6 routing
+USEMODULE += gnrc_ipv6_router_default
+
 # Required by gcoap example
 USEMODULE += od
 USEMODULE += fmt
@@ -31,6 +34,10 @@ USEMODULE += shell
 USEMODULE += shell_commands
 # additional modules for debugging:
 USEMODULE += ps
+
+
+CFLAGS += -DGNRC_IPV6_NIB_CONF_SLAAC=1
+
 
 # Comment this out to disable code in RIOT that does safety checking
 # which is not needed in a production environment but helps in the
