@@ -19,8 +19,11 @@
  */
 
 #include <stdio.h>
-
+#include "msg.h"
 #include "shell.h"
+
+#define MAIN_QUEUE_SIZE (4)
+static msg_t _main_msg_queue[MAIN_QUEUE_SIZE];
 
 extern void saul_coap_init(void);
 
@@ -30,6 +33,8 @@ int main(void)
     puts("Type `help` for help, type `saul` to see all SAUL devices\n");
 
     saul_coap_init();
+
+    msg_init_queue(_main_msg_queue, MAIN_QUEUE_SIZE);
 
     char line_buf[SHELL_DEFAULT_BUFSIZE];
     shell_run(NULL, line_buf, SHELL_DEFAULT_BUFSIZE);
