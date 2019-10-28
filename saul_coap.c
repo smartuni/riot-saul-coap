@@ -32,7 +32,7 @@ static ssize_t _saul_dev_handler(coap_pkt_t* pdu, uint8_t *buf, size_t len, void
 static const coap_resource_t _resources[] = {
     { "/saul/cnt", COAP_GET, _saul_cnt_handler, NULL },
     { "/saul/dev", COAP_POST, _saul_dev_handler, NULL },
-	{"/saul/atr", COAP_PUT, _saul_atr_handler, NULL}
+    {"/saul/atr", COAP_PUT, _saul_atr_handler, NULL},
 };
 
 static gcoap_listener_t _listener = {
@@ -83,7 +83,7 @@ static ssize_t _saul_dev_handler(coap_pkt_t* pdu, uint8_t *buf, size_t len, void
 
         if (pdu->payload_len >= strlen(payl)) {
             memcpy(pdu->payload, payl, strlen(payl));
-	    free(payl);
+            free(payl);
             gcoap_response(pdu, buf, len, COAP_CODE_204);
             return resp_len + strlen(payl);
         }
@@ -91,7 +91,7 @@ static ssize_t _saul_dev_handler(coap_pkt_t* pdu, uint8_t *buf, size_t len, void
             printf("saul_coap: msg buffer (size: %d) too small"
                    " for payload (size: %d)\n",
                    pdu->payload_len, strlen(payl));
-	    free(payl);
+            free(payl);
             return gcoap_response(pdu, buf, len, COAP_CODE_INTERNAL_SERVER_ERROR);
         }
     }
@@ -110,22 +110,22 @@ static ssize_t _saul_cnt_handler(coap_pkt_t* pdu, uint8_t *buf, size_t len, void
     size_t resp_len = coap_opt_finish(pdu, COAP_OPT_FINISH_PAYLOAD);
 
     if (!dev) {
-	payl = make_msg("No devices found");
+        payl = make_msg("No devices found");
     }
     else {
         while (dev) {
             /*
-            payl = make_msg("%s%i,%s\n",
-                            payl,
-                            i++,
-                            saul_class_to_str(dev->driver->type),
-                            dev->name);
+              payl = make_msg("%s%i,%s\n",
+              payl,
+              i++,
+              saul_class_to_str(dev->driver->type),
+              dev->name);
             */
             i++;
             dev = dev->next;
         }
 
-	payl = make_msg("%d devices available", i);
+        payl = make_msg("%d devices available", i);
     }
 
     if (pdu->payload_len >= strlen(payl)) {
@@ -163,7 +163,7 @@ static ssize_t _saul_atr_handler(coap_pkt_t* pdu, uint8_t *buf, size_t len, void
     else {
         return gcoap_response(pdu, buf, len, COAP_CODE_BAD_REQUEST);
     }
-	
+
     return _atr_type_responder(pdu, buf, len, type);
 }
 
@@ -176,30 +176,30 @@ static ssize_t _atr_type_responder(coap_pkt_t* pdu, uint8_t *buf, size_t len, ui
     gcoap_resp_init(pdu, buf, len, COAP_CODE_CONTENT);
     coap_opt_add_format(pdu, COAP_FORMAT_TEXT);
     resp_len = coap_opt_finish(pdu, COAP_OPT_FINISH_PAYLOAD);
-	
+
     if (dev == NULL) {
-	char *err = "device not found";
-	if (pdu->payload_len >= strlen(err)) {
-	    memcpy(pdu->payload, err, strlen(err));
-	    resp_len += gcoap_response(pdu, buf, len, COAP_CODE_404);
-	    return resp_len;
-	}
-	else {
-		phydat_dump(&res, type);//phydat.h
-    dim = saul_reg_write(dev, &res); // &res -as saul_reg_read store location or *res data to write? 
-	   // return gcoap_response(pdu, buf, len, COAP_CODE_404);
-	}
+        char *err = "device not found";
+        if (pdu->payload_len >= strlen(err)) {
+            memcpy(pdu->payload, err, strlen(err));
+            resp_len += gcoap_response(pdu, buf, len, COAP_CODE_404);
+            return resp_len;
+        }
+        else {
+            phydat_dump(&res, type);//phydat.h
+            dim = saul_reg_write(dev, &res); // &res -as saul_reg_read store location or *res data to write?
+            // return gcoap_response(pdu, buf, len, COAP_CODE_404);
+        }
     }
-	 if (dim <= 0) {
-	char *err = "no values found";
-	if (pdu->payload_len >= strlen(err)) {
-	    memcpy(pdu->payload, err, strlen(err));
-	    resp_len += gcoap_response(pdu, buf, len, COAP_CODE_404);
-	    return resp_len;
-	}
-	else {
-	    return gcoap_response(pdu, buf, len, COAP_CODE_404);
-	}
+    if (dim <= 0) {
+        char *err = "no values found";
+        if (pdu->payload_len >= strlen(err)) {
+            memcpy(pdu->payload, err, strlen(err));
+            resp_len += gcoap_response(pdu, buf, len, COAP_CODE_404);
+            return resp_len;
+        }
+        else {
+            return gcoap_response(pdu, buf, len, COAP_CODE_404);
+        }
     }
     /* write the response buffer with the request device value */
     resp_len += fmt_u16_dec((char *)pdu->payload, res.val[0]);
