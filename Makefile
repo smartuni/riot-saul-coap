@@ -36,6 +36,7 @@ USEMODULE += shell_commands
 # additional modules for debugging:
 USEMODULE += ps
 
+USEMODULE += netstats_l2
 
 CFLAGS += -DGNRC_IPV6_NIB_CONF_SLAAC=1
 
