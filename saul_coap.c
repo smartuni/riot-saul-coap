@@ -25,8 +25,6 @@
 #include "fmt.h"
 #include "net/gcoap.h"
 
-extern char *make_msg(char *, ...);
-
 static ssize_t _saul_cnt_handler(coap_pkt_t* pdu, uint8_t *buf, size_t len, void *ctx);
 static ssize_t _saul_dev_handler(coap_pkt_t* pdu, uint8_t *buf, size_t len, void *ctx);
 static ssize_t _saul_sensortype_handler(coap_pkt_t* pdu, uint8_t *buf, size_t len, void *ctx);
@@ -92,10 +90,18 @@ static ssize_t _saul_dev_handler(coap_pkt_t* pdu, uint8_t *buf, size_t len, void
         }
     }
     else {
-        char *payl = make_msg("%i,%s,%s\n",
-                              pos,
-                              saul_class_to_str(dev->driver->type),
-                              dev->name);
+        char *payl = NULL;
+        const char *class_str = saul_class_to_str(dev->driver->type);
+        const char *dev_name = dev->name;
+
+        size_t class_size = strlen(class_str);
+        size_t dev_size = strlen(dev_name);
+        size_t pos_size = sizeof(pos);
+        size_t payl_size = class_size + dev_size + pos_size;
+
+        // TODO: Check if payl_size + 1 must be there
+        snprintf(payl, payl_size, "%i,%s,%s\n", pos,
+            class_str, dev_name);
 
         if (pdu->payload_len >= strlen(payl)) {
             memcpy(pdu->payload, payl, strlen(payl));
