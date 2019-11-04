@@ -30,24 +30,25 @@ extern char *make_msg(char *, ...);
 static ssize_t _saul_cnt_handler(coap_pkt_t* pdu, uint8_t *buf, size_t len, void *ctx);
 static ssize_t _saul_dev_handler(coap_pkt_t* pdu, uint8_t *buf, size_t len, void *ctx);
 static ssize_t _saul_sensortype_handler(coap_pkt_t* pdu, uint8_t *buf, size_t len, void *ctx);
-static ssize_t _sense_type_responder(coap_pkt_t* pdu, uint8_t *buf, size_t len, uint8_t type);
-/* specific sense type handlers, shortcut via enum in saul.h */
-static ssize_t _sense_temp_handler(coap_pkt_t* pdu, uint8_t *buf, size_t len, void *ctx);
-static ssize_t _sense_hum_handler(coap_pkt_t* pdu, uint8_t *buf, size_t len, void *ctx);
-static ssize_t _sense_servo_handler(coap_pkt_t* pdu, uint8_t *buf, size_t len, void *ctx);
-static ssize_t _sense_press_handler(coap_pkt_t* pdu, uint8_t *buf, size_t len, void *ctx);
-static ssize_t _sense_voltage_handler(coap_pkt_t* pdu, uint8_t *buf, size_t len, void *ctx);
+static ssize_t _sense_type_responder(coap_pkt_t* pdu, uint8_t *buf, size_t len, void *ctx);
+
+/* supported sense types, used for context pointer in coap_resource_t */
+uint8_t class_servo = SAUL_ACT_SERVO;
+uint8_t class_hum = SAUL_SENSE_HUM;
+uint8_t class_press = SAUL_SENSE_PRESS;
+uint8_t class_temp = SAUL_SENSE_TEMP;
+uint8_t class_voltage = SAUL_SENSE_VOLTAGE;
 
 /* CoAP resources. Must be sorted by path (ASCII order). */
 static const coap_resource_t _resources[] = {
-    { "/hum", COAP_GET, _sense_hum_handler, NULL },
-    { "/press", COAP_GET, _sense_press_handler, NULL },
+    { "/hum", COAP_GET, _sense_type_responder, &class_hum },
+    { "/press", COAP_GET, _sense_type_responder, &class_press },
     { "/saul/cnt", COAP_GET, _saul_cnt_handler, NULL },
     { "/saul/dev", COAP_POST, _saul_dev_handler, NULL },
     { "/sensor", COAP_GET, _saul_sensortype_handler, NULL },
-    { "/servo", COAP_GET, _sense_servo_handler, NULL },
-    { "/temp", COAP_GET, _sense_temp_handler, NULL },
-    { "/voltage", COAP_GET, _sense_voltage_handler, NULL },
+    { "/servo", COAP_GET, _sense_type_responder, &class_servo },
+    { "/temp", COAP_GET, _sense_type_responder, &class_temp },
+    { "/voltage", COAP_GET, _sense_type_responder, &class_voltage },
 };
 
 static gcoap_listener_t _listener = {
@@ -152,11 +153,12 @@ static ssize_t _saul_sensortype_handler(coap_pkt_t* pdu, uint8_t *buf, size_t le
 
     type = atoi(type_number);
 
-    return _sense_type_responder(pdu, buf, len, type);
+    return _sense_type_responder(pdu, buf, len, &type);
 }
 
-static ssize_t _sense_type_responder(coap_pkt_t* pdu, uint8_t *buf, size_t len, uint8_t type)
+static ssize_t _sense_type_responder(coap_pkt_t* pdu, uint8_t *buf, size_t len, void *ctx)
 {
+    uint8_t type = *((uint8_t *)ctx);
     saul_reg_t *dev = saul_reg_find_type(type);
     phydat_t res;
     int dim;
@@ -198,36 +200,6 @@ static ssize_t _sense_type_responder(coap_pkt_t* pdu, uint8_t *buf, size_t len, 
     /* write the response buffer with the request device value */
     resp_len += fmt_u16_dec((char *)pdu->payload, res.val[0]);
     return resp_len;
-}
-
-static ssize_t _sense_temp_handler(coap_pkt_t* pdu, uint8_t *buf, size_t len, void *ctx)
-{
-    (void)ctx;
-    return _sense_type_responder(pdu, buf, len, SAUL_SENSE_TEMP);
-}
-
-static ssize_t _sense_hum_handler(coap_pkt_t* pdu, uint8_t *buf, size_t len, void *ctx)
-{
-    (void)ctx;
-    return _sense_type_responder(pdu, buf, len, SAUL_SENSE_HUM);
-}
-
-static ssize_t _sense_servo_handler(coap_pkt_t* pdu, uint8_t *buf, size_t len, void *ctx)
-{
-    (void)ctx;
-    return _sense_type_responder(pdu, buf, len, SAUL_ACT_SERVO);
-}
-
-static ssize_t _sense_press_handler(coap_pkt_t* pdu, uint8_t *buf, size_t len, void *ctx)
-{
-    (void)ctx;
-    return _sense_type_responder(pdu, buf, len, SAUL_SENSE_PRESS);
-}
-
-static ssize_t _sense_voltage_handler(coap_pkt_t* pdu, uint8_t *buf, size_t len, void *ctx)
-{
-    (void)ctx;
-    return _sense_type_responder(pdu, buf, len, SAUL_SENSE_VOLTAGE);
 }
 
 void saul_coap_init(void)
