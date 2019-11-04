@@ -94,10 +94,10 @@ static ssize_t _saul_dev_handler(coap_pkt_t* pdu, uint8_t *buf, size_t len, void
         const char *dev_name = dev->name;
         size_t class_size = strlen(class_str);
         size_t dev_size = strlen(dev_name);
-        // Pos should be maximum 3 digits
+        /* Pos should be maximum 3 digits */
         size_t max_pos_size = 3;
-        // The `+4` is necessary because there will
-        // be additional 2 commas and one linebreak
+        /* The `+4` is necessary because there will
+           be additional 2 commas and one linebreak */
         size_t payl_size = class_size + dev_size + max_pos_size + 4;
         char payl[payl_size];
 
@@ -149,8 +149,8 @@ static ssize_t _saul_sensortype_handler(coap_pkt_t* pdu, uint8_t *buf, size_t le
 
     int size = coap_get_uri_query(pdu, query);
 
-    // FIXME: extract the type number from the query, which has to
-    // have the format `&class=123`; read number value from class key
+    /* FIXME: extract the type number from the query, which has to
+       have the format `&class=123`; read number value from class key */
     if (size < 9 || size > 11) {
         return gcoap_response(pdu, buf, len, COAP_CODE_BAD_REQUEST);
     }
