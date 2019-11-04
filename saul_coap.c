@@ -90,30 +90,30 @@ static ssize_t _saul_dev_handler(coap_pkt_t* pdu, uint8_t *buf, size_t len, void
         }
     }
     else {
-        char *payl = NULL;
         const char *class_str = saul_class_to_str(dev->driver->type);
         const char *dev_name = dev->name;
-
         size_t class_size = strlen(class_str);
         size_t dev_size = strlen(dev_name);
-        size_t pos_size = sizeof(pos);
-        size_t payl_size = class_size + dev_size + pos_size;
+	// Pos should be maximum 3 digits
+        size_t max_pos_size = 3;
+	// The `+4` is necessary because there will
+	// be additional 2 commas and one linebreak
+        size_t payl_size = class_size + dev_size + max_pos_size + 4;
+	char payl[payl_size];
+	
+	snprintf(payl, payl_size, "%i,%s,%s\n", pos, class_str, dev_name);
+	
+	size_t payl_length = strlen(payl);
 
-        // TODO: Check if payl_size + 1 must be there
-        snprintf(payl, payl_size, "%i,%s,%s\n", pos,
-            class_str, dev_name);
-
-        if (pdu->payload_len >= strlen(payl)) {
-            memcpy(pdu->payload, payl, strlen(payl));
-            free(payl);
+        if (pdu->payload_len >= payl_length) {
+            memcpy(pdu->payload, payl, payl_length);
             gcoap_response(pdu, buf, len, COAP_CODE_204);
-            return resp_len + strlen(payl);
+            return resp_len + payl_length;
         }
         else {
             printf("saul_coap: msg buffer (size: %d) too small"
                    " for payload (size: %d)\n",
-                   pdu->payload_len, strlen(payl));
-            free(payl);
+                   pdu->payload_len, payl_length);
             return gcoap_response(pdu, buf, len, COAP_CODE_INTERNAL_SERVER_ERROR);
         }
     }
