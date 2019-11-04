@@ -25,8 +25,6 @@
 #include "fmt.h"
 #include "net/gcoap.h"
 
-extern char *make_msg(char *, ...);
-
 static ssize_t _saul_cnt_handler(coap_pkt_t* pdu, uint8_t *buf, size_t len, void *ctx);
 static ssize_t _saul_dev_handler(coap_pkt_t* pdu, uint8_t *buf, size_t len, void *ctx);
 static ssize_t _saul_sensortype_handler(coap_pkt_t* pdu, uint8_t *buf, size_t len, void *ctx);
@@ -93,22 +91,30 @@ static ssize_t _saul_dev_handler(coap_pkt_t* pdu, uint8_t *buf, size_t len, void
         }
     }
     else {
-        char *payl = make_msg("%i,%s,%s\n",
-                              pos,
-                              saul_class_to_str(dev->driver->type),
-                              dev->name);
+        const char *class_str = saul_class_to_str(dev->driver->type);
+        const char *dev_name = dev->name;
+        size_t class_size = strlen(class_str);
+        size_t dev_size = strlen(dev_name);
+        /* Pos should be maximum 3 digits */
+        size_t max_pos_size = 3;
+        /* The `+4` is necessary because there will
+           be additional 2 commas and one linebreak */
+        size_t payl_size = class_size + dev_size + max_pos_size + 4;
+        char payl[payl_size];
 
-        if (pdu->payload_len >= strlen(payl)) {
-            memcpy(pdu->payload, payl, strlen(payl));
-            free(payl);
+        snprintf(payl, payl_size, "%i,%s,%s\n", pos, class_str, dev_name);
+
+        size_t payl_length = strlen(payl);
+
+        if (pdu->payload_len >= payl_length) {
+            memcpy(pdu->payload, payl, payl_length);
             gcoap_response(pdu, buf, len, COAP_CODE_204);
-            return resp_len + strlen(payl);
+            return resp_len + payl_length;
         }
         else {
             printf("saul_coap: msg buffer (size: %d) too small"
                    " for payload (size: %d)\n",
-                   pdu->payload_len, strlen(payl));
-            free(payl);
+                   pdu->payload_len, payl_length);
             return gcoap_response(pdu, buf, len, COAP_CODE_INTERNAL_SERVER_ERROR);
         }
     }
@@ -144,8 +150,8 @@ static ssize_t _saul_sensortype_handler(coap_pkt_t* pdu, uint8_t *buf, size_t le
 
     int size = coap_get_uri_query(pdu, query);
 
-    // FIXME: extract the type number from the query, which has to
-    // have the format `&class=123`; read number value from class key
+    /* FIXME: extract the type number from the query, which has to
+       have the format `&class=123`; read number value from class key */
     if (size < 9 || size > 11) {
         return gcoap_response(pdu, buf, len, COAP_CODE_BAD_REQUEST);
     }
