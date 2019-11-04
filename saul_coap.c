@@ -30,7 +30,7 @@ extern char *make_msg(char *, ...);
 static ssize_t _saul_cnt_handler(coap_pkt_t* pdu, uint8_t *buf, size_t len, void *ctx);
 static ssize_t _saul_dev_handler(coap_pkt_t* pdu, uint8_t *buf, size_t len, void *ctx);
 static ssize_t _saul_sensortype_handler(coap_pkt_t* pdu, uint8_t *buf, size_t len, void *ctx);
-static ssize_t _sense_type_responder(coap_pkt_t* pdu, uint8_t *buf, size_t len, void *ctx);
+static ssize_t _saul_type_handler(coap_pkt_t* pdu, uint8_t *buf, size_t len, void *ctx);
 
 /* supported sense types, used for context pointer in coap_resource_t */
 uint8_t class_servo = SAUL_ACT_SERVO;
@@ -41,14 +41,14 @@ uint8_t class_voltage = SAUL_SENSE_VOLTAGE;
 
 /* CoAP resources. Must be sorted by path (ASCII order). */
 static const coap_resource_t _resources[] = {
-    { "/hum", COAP_GET, _sense_type_responder, &class_hum },
-    { "/press", COAP_GET, _sense_type_responder, &class_press },
+    { "/hum", COAP_GET, _saul_type_handler, &class_hum },
+    { "/press", COAP_GET, _saul_type_handler, &class_press },
     { "/saul/cnt", COAP_GET, _saul_cnt_handler, NULL },
     { "/saul/dev", COAP_POST, _saul_dev_handler, NULL },
     { "/sensor", COAP_GET, _saul_sensortype_handler, NULL },
-    { "/servo", COAP_GET, _sense_type_responder, &class_servo },
-    { "/temp", COAP_GET, _sense_type_responder, &class_temp },
-    { "/voltage", COAP_GET, _sense_type_responder, &class_voltage },
+    { "/servo", COAP_GET, _saul_type_handler, &class_servo },
+    { "/temp", COAP_GET, _saul_type_handler, &class_temp },
+    { "/voltage", COAP_GET, _saul_type_handler, &class_voltage },
 };
 
 static gcoap_listener_t _listener = {
@@ -153,10 +153,10 @@ static ssize_t _saul_sensortype_handler(coap_pkt_t* pdu, uint8_t *buf, size_t le
 
     type = atoi(type_number);
 
-    return _sense_type_responder(pdu, buf, len, &type);
+    return _saul_type_handler(pdu, buf, len, &type);
 }
 
-static ssize_t _sense_type_responder(coap_pkt_t* pdu, uint8_t *buf, size_t len, void *ctx)
+static ssize_t _saul_type_handler(coap_pkt_t* pdu, uint8_t *buf, size_t len, void *ctx)
 {
     uint8_t type = *((uint8_t *)ctx);
     saul_reg_t *dev = saul_reg_find_type(type);
