@@ -30,14 +30,16 @@ USEMODULE += fmt
 
 # we want to use SAUL:
 USEMODULE += saul_default
+# include RIOT's resource directory endpoint
+USEMODULE += cord_ep_standalone
 # include the shell:
 USEMODULE += shell
 USEMODULE += shell_commands
 # additional modules for debugging:
 USEMODULE += ps
 
+# needed so that the board can be reached
 USEMODULE += netstats_l2
-
 CFLAGS += -DGNRC_IPV6_NIB_CONF_SLAAC=1
 
 

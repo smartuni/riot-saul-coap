@@ -14,7 +14,7 @@
  * @brief       CoAP endpoint for the SAUL registry
  *
  * @author      Micha Rosenbaum <micha.rosenbaum@haw-hamburg.de>
- *
+ * @author      Matthias Bräuer <matthias.braeuer@haw-hamburg.de>
  * @}
  */
 
@@ -24,6 +24,8 @@
 #include "saul_reg.h"
 #include "fmt.h"
 #include "net/gcoap.h"
+#include "net/cord/common.h"
+#include "net/cord/ep_standalone.h"
 
 static ssize_t _saul_cnt_handler(coap_pkt_t* pdu, uint8_t *buf, size_t len, void *ctx);
 static ssize_t _saul_dev_handler(coap_pkt_t* pdu, uint8_t *buf, size_t len, void *ctx);
@@ -48,6 +50,22 @@ static const coap_resource_t _resources[] = {
     { "/temp", COAP_GET, _saul_type_handler, &class_temp },
     { "/voltage", COAP_GET, _saul_type_handler, &class_voltage },
 };
+
+/* we will use a custom event handler for dumping cord_ep events */
+static void _on_ep_event(cord_ep_standalone_event_t event)
+{
+    switch (event) {
+        case CORD_EP_REGISTERED:
+            puts("RD endpoint event: now registered with a RD");
+            break;
+        case CORD_EP_DEREGISTERED:
+            puts("RD endpoint event: dropped client registration");
+            break;
+        case CORD_EP_UPDATED:
+            puts("RD endpoint event: successfully updated client registration");
+            break;
+    }
+}
 
 static gcoap_listener_t _listener = {
     &_resources[0],
@@ -211,4 +229,6 @@ static ssize_t _saul_type_handler(coap_pkt_t* pdu, uint8_t *buf, size_t len, voi
 void saul_coap_init(void)
 {
     gcoap_register_listener(&_listener);
+    cord_ep_standalone_reg_cb(_on_ep_event);
 }
+
