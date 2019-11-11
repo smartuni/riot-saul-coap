@@ -24,6 +24,7 @@
 #include "saul_reg.h"
 #include "fmt.h"
 #include "net/gcoap.h"
+#include "cbor.h"
 
 static ssize_t _saul_cnt_handler(coap_pkt_t* pdu, uint8_t *buf, size_t len, void *ctx);
 static ssize_t _saul_dev_handler(coap_pkt_t* pdu, uint8_t *buf, size_t len, void *ctx);
@@ -170,8 +171,11 @@ static ssize_t _saul_type_handler(coap_pkt_t* pdu, uint8_t *buf, size_t len, voi
     int dim;
     size_t resp_len;
 
+    uint8_t cbor_buf[32];
+    CborEncoder encoder, mapEncoder, aryEncoder;
+
     gcoap_resp_init(pdu, buf, len, COAP_CODE_CONTENT);
-    coap_opt_add_format(pdu, COAP_FORMAT_TEXT);
+    coap_opt_add_format(pdu, COAP_FORMAT_CBOR);
     resp_len = coap_opt_finish(pdu, COAP_OPT_FINISH_PAYLOAD);
 
     if (dev == NULL) {
@@ -199,13 +203,29 @@ static ssize_t _saul_type_handler(coap_pkt_t* pdu, uint8_t *buf, size_t len, voi
         }
     }
 
+    cbor_encoder_init(&encoder, cbor_buf, sizeof(cbor_buf), 0);
+    cbor_encoder_create_map(&encoder, &mapEncoder, CborIndefiniteLength);
+    cbor_encode_text_stringz(&mapEncoder, "values");
+    cbor_encoder_create_array(&mapEncoder, &aryEncoder, 1);
+    cbor_encode_int(&aryEncoder, res.val[0]);
+    cbor_encoder_close_container(&mapEncoder, &aryEncoder);
+    cbor_encoder_close_container(&encoder, &mapEncoder);
+
     /* TODO: Take care of all values. */
     /* for (uint8_t i = 0; i < dim; i++) {
        } */
 
+    if (pdu->payload_len >= strlen((char *)cbor_buf)) {
+        memcpy(pdu->payload, cbor_buf, strlen((char *)cbor_buf));
+        resp_len += gcoap_response(pdu, buf, len, COAP_CODE_VALID);
+        return resp_len;
+    } else {
+        return gcoap_response(pdu, buf, len, COAP_CODE_INTERNAL_SERVER_ERROR);
+    }
+
     /* write the response buffer with the request device value */
-    resp_len += fmt_u16_dec((char *)pdu->payload, res.val[0]);
-    return resp_len;
+    /* resp_len += fmt_u16_dec((char *)pdu->payload, res.val[0]);
+       return resp_len; */
 }
 
 void saul_coap_init(void)
