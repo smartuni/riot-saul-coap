@@ -45,3 +45,10 @@ Enter shell with board command (Phytec)
 To distinguish multiple boards using SERIAL number
 
     make list-ttys 
+    
+    
+###########TO DO###############
+
+human readable parameter(input) -> parse it -> phydat
+cbor standard format but still parse 
+
