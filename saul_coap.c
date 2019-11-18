@@ -169,71 +169,53 @@ void export_phydat_to_cbor(CborEncoder *encoder, uint8_t *cbor_buf, size_t buf_l
 
     cbor_encoder_init(encoder, cbor_buf, buf_len, 0);
     if (err != CborNoError) {
-        printf("CborError occured: %d; %d\n", err, __LINE__);
         return;
     }
 
     err = cbor_encoder_create_map(encoder, &mapEncoder, 3);
     if (err != CborNoError) {
-        printf("CborError occured: %d\n", err);
-        printf("CborError occured: %d; %d\n", err, __LINE__);
         return;
     }
-
-    printf("CborError occured: %d: %s (%d); %d\n", err, cbor_error_string(err), cbor_encoder_get_buffer_size(encoder, cbor_buf), __LINE__);
-    printf("No CborError occured, len: %d; %d\n", cbor_encoder_get_buffer_size(&mapEncoder, cbor_buf), __LINE__);
 
     err = cbor_encode_text_stringz(&mapEncoder, "va");
     if (err != CborNoError) {
-        printf("CborError occured: %x: %s (%d); %d\n", err, cbor_error_string(err), cbor_encoder_get_extra_bytes_needed(&mapEncoder), __LINE__);
         return;
     }
 
-    printf("No CborError occured, len: %d; %d\n", cbor_encoder_get_buffer_size(encoder, cbor_buf), __LINE__);
-    printf("No CborError occured, len: %d; %d\n", cbor_encoder_get_buffer_size(&mapEncoder, cbor_buf), __LINE__);
-
     err = cbor_encoder_create_array(&mapEncoder, &aryEncoder, dim);
     if (err != CborNoError) {
-        printf("CborError occured: %x: %s (%d); %d\n", err, cbor_error_string(err), cbor_encoder_get_extra_bytes_needed(&aryEncoder), __LINE__);
         return;
     }
 
     for (uint8_t i = 0; i < dim; i++) {
         err = cbor_encode_int(&aryEncoder, data.val[i]);
         if (err != CborNoError) {
-            printf("CborError occured: %d\n", err);
-            printf("CborError occured: %d; %d\n", err, __LINE__);
             return;
         }
     }
 
     err = cbor_encoder_close_container(&mapEncoder, &aryEncoder);
     if (err != CborNoError) {
-        printf("CborError occured: %d\n", err); printf("CborError occured: %d; %d\n", err, __LINE__);
         return;
     }
 
-    err= cbor_encode_text_stringz(&mapEncoder, "unit");
+    err = cbor_encode_text_stringz(&mapEncoder, "unit");
     if (err != CborNoError) {
-        printf("CborError occured: %d\n", err); printf("CborError occured: %d; %d\n", err, __LINE__);
         return;
     }
 
-    err =cbor_encode_int(&mapEncoder, data.unit);
+    err = cbor_encode_int(&mapEncoder, data.unit);
     if (err != CborNoError) {
-        printf("CborError occured: %d\n", err); printf("CborError occured: %d; %d\n", err, __LINE__);
         return;
     }
 
-    err=cbor_encode_text_stringz(&mapEncoder, "scale");
+    err = cbor_encode_text_stringz(&mapEncoder, "scale");
     if (err != CborNoError) {
-        printf("CborError occured: %d\n", err); printf("CborError occured: %d; %d\n", err, __LINE__);
         return;
     }
 
-    err=cbor_encode_int(&mapEncoder, data.scale);
+    err = cbor_encode_int(&mapEncoder, data.scale);
     if (err != CborNoError) {
-        printf("CborError occured: %d\n", err); printf("CborError occured: %d; %d\n", err, __LINE__);
         return;
     }
 
@@ -283,10 +265,6 @@ static ssize_t _saul_type_handler(coap_pkt_t* pdu, uint8_t *buf, size_t len, voi
     export_phydat_to_cbor(&encoder, cbor_buf, sizeof(cbor_buf), res, dim);
 
     size_t buf_size=cbor_encoder_get_buffer_size(&encoder, cbor_buf);
-    for(uint8_t i =0;i<buf_size;i++) {
-        printf("%xx ", cbor_buf[i]);
-    }
-    printf("\n%d\n", cbor_encoder_get_buffer_size(&encoder, cbor_buf));
     if (pdu->payload_len >= cbor_encoder_get_buffer_size(&encoder, cbor_buf)) {
         memcpy(pdu->payload, cbor_buf, cbor_encoder_get_buffer_size(&encoder, cbor_buf));
         resp_len += gcoap_response(pdu, buf, len, COAP_CODE_VALID);
@@ -296,9 +274,6 @@ static ssize_t _saul_type_handler(coap_pkt_t* pdu, uint8_t *buf, size_t len, voi
 
     memset(cbor_buf, 0, sizeof(cbor_buf));
     return resp_len;
-    /* write the response buffer with the request device value */
-    /* resp_len += fmt_u16_dec((char *)pdu->payload, res.val[0]);
-       return resp_len; */
 }
 
 void saul_coap_init(void)
