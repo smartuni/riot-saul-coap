@@ -56,6 +56,8 @@ static gcoap_listener_t _listener = {
     NULL
 };
 
+static uint8_t cbor_buf[64] = { 0 };
+
 static ssize_t _saul_dev_handler(coap_pkt_t* pdu, uint8_t *buf, size_t len, void *ctx)
 {
     int pos = 0;
@@ -221,8 +223,6 @@ void export_phydat_to_cbor(CborEncoder *encoder, uint8_t *cbor_buf, size_t buf_l
 
     cbor_encoder_close_container(encoder, &mapEncoder);
 }
-
-static uint8_t cbor_buf[128] = { 0 };
 
 static ssize_t _saul_type_handler(coap_pkt_t* pdu, uint8_t *buf, size_t len, void *ctx)
 {
