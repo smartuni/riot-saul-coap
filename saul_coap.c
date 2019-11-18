@@ -162,12 +162,12 @@ static ssize_t _saul_sensortype_handler(coap_pkt_t* pdu, uint8_t *buf, size_t le
     return _saul_type_handler(pdu, buf, len, &type);
 }
 
-void export_phydat_to_cbor(CborEncoder *encoder, uint8_t *cbor_buf, phydat_t data, int dim)
+void export_phydat_to_cbor(CborEncoder *encoder, uint8_t *cbor_buf, size_t buf_len, phydat_t data, int dim)
 {
     CborEncoder mapEncoder, aryEncoder;
     CborError err = CborNoError;
 
-    cbor_encoder_init(encoder, cbor_buf, sizeof(cbor_buf), 0);
+    cbor_encoder_init(encoder, cbor_buf, buf_len, 0);
     if (err != CborNoError) {
         printf("CborError occured: %d; %d\n", err, __LINE__);
         return;
@@ -280,7 +280,7 @@ static ssize_t _saul_type_handler(coap_pkt_t* pdu, uint8_t *buf, size_t len, voi
         }
     }
 
-    export_phydat_to_cbor(&encoder, cbor_buf, res, dim);
+    export_phydat_to_cbor(&encoder, cbor_buf, sizeof(cbor_buf), res, dim);
 
     size_t buf_size=cbor_encoder_get_buffer_size(&encoder, cbor_buf);
     for(uint8_t i =0;i<buf_size;i++) {
