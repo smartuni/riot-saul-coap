@@ -284,7 +284,7 @@ static ssize_t _saul_type_handler(coap_pkt_t* pdu, uint8_t *buf, size_t len, voi
 
     size_t buf_size=cbor_encoder_get_buffer_size(&encoder, cbor_buf);
     for(uint8_t i =0;i<buf_size;i++) {
-        printf("%x ", cbor_buf[i]);
+        printf("%xx ", cbor_buf[i]);
     }
     printf("\n%d\n", cbor_encoder_get_buffer_size(&encoder, cbor_buf));
     if (pdu->payload_len >= cbor_encoder_get_buffer_size(&encoder, cbor_buf)) {
