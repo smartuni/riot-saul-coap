@@ -173,7 +173,7 @@ void export_phydat_to_cbor(CborEncoder *encoder, uint8_t *cbor_buf, size_t buf_l
         return;
     }
 
-    err = cbor_encoder_create_map(encoder, &mapEncoder, 1);
+    err = cbor_encoder_create_map(encoder, &mapEncoder, 3);
     if (err != CborNoError) {
         printf("CborError occured: %d\n", err);
         printf("CborError occured: %d; %d\n", err, __LINE__);
