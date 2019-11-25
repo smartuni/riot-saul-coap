@@ -293,3 +293,63 @@ static ssize_t _atr_type_responder(coap_pkt_t* pdu, uint8_t *buf, size_t len, ui
     resp_len += fmt_u16_dec((char *)pdu->payload, res.val[0]);
     return resp_len;
 }
+
+static ssize_t _saul_servo_handler(coap_pkt_t* pdu, uint8_t *buf, size_t len, void *ctx)
+{
+    uint8_t type;
+
+    (void)ctx;
+
+    if (pdu->payload_len <= 5) {
+        char req_payl[6] = { 0 };
+        memcpy(req_payl, (char *)pdu->payload, pdu->payload_len);
+        type = atoi(req_payl);
+    }
+    else {
+        return gcoap_response(pdu, buf, len, COAP_CODE_BAD_REQUEST);
+    }
+
+    return _servo_type_responder(pdu, buf, len, type);
+}
+
+static ssize_t _servo_type_responder(coap_pkt_t* pdu, uint8_t *buf, size_t len, uint8_t type)
+{
+    saul_reg_t *dev = saul_reg_find_type(type);
+    phydat_t res;
+    int dim;
+    size_t resp_len;
+    gcoap_resp_init(pdu, buf, len, COAP_CODE_CONTENT);
+    coap_opt_add_format(pdu, COAP_FORMAT_TEXT);
+    //coap_opt_add_format(pdu, COAP_FORMAT_CBOR);
+    resp_len = coap_opt_finish(pdu, COAP_OPT_FINISH_PAYLOAD);
+
+    if (dev == NULL) {
+        char *err = "device not found";
+        if (pdu->payload_len >= strlen(err)) {
+            memcpy(pdu->payload, err, strlen(err));
+            resp_len += gcoap_response(pdu, buf, len, COAP_CODE_404);
+            return resp_len;
+        }
+        else {
+            //parse!***
+            //parse whatever to phydat
+            //functions to execute
+            //dim = saul_reg_write(dev, res); // &res -as saul_reg_read store location or *res data to write?
+            // return gcoap_response(pdu, buf, len, COAP_CODE_404);
+        }
+    }
+    if (dim <= 0) {
+        char *err = "no values found";
+        if (pdu->payload_len >= strlen(err)) {
+            memcpy(pdu->payload, err, strlen(err));
+            resp_len += gcoap_response(pdu, buf, len, COAP_CODE_404);
+            return resp_len;
+        }
+        else {
+            return gcoap_response(pdu, buf, len, COAP_CODE_404);
+        }
+    }
+    /* write the response buffer with the request device value */
+    resp_len += fmt_u16_dec((char *)pdu->payload, res.val[0]);
+    return resp_len;
+}
