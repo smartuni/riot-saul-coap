@@ -210,7 +210,7 @@ static ssize_t _saul_type_handler(coap_pkt_t* pdu, uint8_t *buf, size_t len, voi
 
     if (cbor_err == CborNoError && buf_size > 0 && pdu->payload_len >= buf_size) {
         memcpy(pdu->payload, cbor_buf, buf_size);
-        resp_len += gcoap_response(pdu, buf, len, COAP_CODE_VALID);
+        resp_len += buf_size;
     } else {
         resp_len = gcoap_response(pdu, buf, len, COAP_CODE_INTERNAL_SERVER_ERROR);
     }
