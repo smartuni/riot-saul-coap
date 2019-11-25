@@ -234,7 +234,7 @@ CborError export_phydat_to_cbor(CborEncoder *encoder, uint8_t *cbor_buf, size_t 
         return err;
     }
 
-    err = cbor_encode_text_stringz(&mapEncoder, "va");
+    err = cbor_encode_text_stringz(&mapEncoder, "values");
     if (err != CborNoError) {
         return err;
     }
