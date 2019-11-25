@@ -36,6 +36,34 @@ The idea of these resources is, to offer similar functionality as the
 - `/saul/dev` (POST) needs an ID as argument. Returns some information
   about the sensor for that ID (name and type). 
 
+## Phydat as CBOR
+
+In all resources by sensor type, we return the `phydat_t` as
+[CBOR][].
+
+[CBOR Example][]:
+
+```
+A3                 # map(3)
+   66              # text(6)
+      76616C756573 # "values"
+   81              # array(1)
+      19 0959      # unsigned(2393)
+   64              # text(4)
+      756E6974     # "unit"
+   02              # unsigned(2)
+   65              # text(5)
+      7363616C65   # "scale"
+   21              # negative(1)
+```
+
+This translates to the following JSON:
+
+    {"values": [2393], "unit": 2, "scale": -2}
+
+[cbor]: http://cbor.io/
+
+[cbor example]: http://cbor.me/?bytes=A3(66(76616C756573)-81(19.0959)-64(756E6974)-02-65(7363616C65)-21)
 
 ## Build and Execute
 Enter shell with board command (Phytec)
