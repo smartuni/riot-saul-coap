@@ -13,7 +13,8 @@
  * @file
  * @brief       CoAP endpoint for the SAUL registry
  *
- * @author      Micha Rosenbaum <micha.rosenbaum@haw-hamburg.de>
+ * @author      Seojeong Moon <seojeong.moon@haw-hamburg.de>
+   @author Micha Rosenbaum <micha.rosenbaum@haw-hamburg.de>
  *
  * @}
  */
