@@ -42,6 +42,8 @@ USEMODULE += ps
 USEMODULE += netstats_l2
 CFLAGS += -DGNRC_IPV6_NIB_CONF_SLAAC=1
 
+# For debugging and demonstration purposes the lifetime is limited to 60s
+CFLAGS += -DCORD_LT=5
 
 # Comment this out to disable code in RIOT that does safety checking
 # which is not needed in a production environment but helps in the

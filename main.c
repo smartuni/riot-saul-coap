@@ -21,11 +21,7 @@
 #include <stdio.h>
 #include "msg.h"
 #include "shell.h"
-#include "net/cord/config.h"
-#include "net/cord/ep.h"
-#include "net/nanocoap.h"
-#include "net/sock/util.h"
-#include "net/cord/ep_standalone.h"
+#include "saul_cord_ep.h"
 
 #define MAIN_QUEUE_SIZE (4)
 #define CORD_EP_ADDRESS "[fdaa:bb:cc:dd::1]:5683"
@@ -43,6 +39,8 @@ static void _on_ep_event(cord_ep_standalone_event_t event)
             break;
         case CORD_EP_DEREGISTERED:
             puts("DEBUG: RD endpoint event: dropped client registration");
+            puts("DEBUG: You should try to register again:)");
+            //saul_cord_ep_register(CORD_EP_ADDRESS);
             break;
         case CORD_EP_UPDATED:
             puts("DEBUG: RD endpoint event: successfully updated client registration");
@@ -50,43 +48,6 @@ static void _on_ep_event(cord_ep_standalone_event_t event)
     }
 }
 
-//static int make_sock_ep(sock_udp_ep_t *ep, const char *addr)
-//{
-//    ep->port = 0;
-//    if (sock_udp_str2ep(ep, addr) < 0) {
-//        return -1;
-//    }
-//    ep->family  = AF_INET6;
-//    ep->netif   = SOCK_ADDR_ANY_NETIF;
-//    if (ep->port == 0) {
-//        ep->port = COAP_PORT;
-//    }
-//    return 0;
-//}
-//
-//static int _register(char* address) {
-//    sock_udp_ep_t remote;
-//    char *regif = NULL;
-//
-//    if (make_sock_ep(&remote, address) < 0) {
-//        puts("error: unable to parse address\n");
-//        return 1;
-//    }
-//     
-//    puts("Registering with RD now, this may take a short while...");
-//    
-//    if (cord_ep_register(&remote, regif) != CORD_EP_OK) {
-//        puts("error: registration failed");
-//        return 1; 
-//    }
-//    else {
-//        puts("registration successful\n");
-//        cord_ep_dump_status();
-//    }
-//
-//    return 0;
-//}
-//
 int main(void)
 {
     puts("Welcome to RIOT!\n");
@@ -96,17 +57,12 @@ int main(void)
 
     msg_init_queue(_main_msg_queue, MAIN_QUEUE_SIZE);
 
-    cord_ep_standalone_reg_cb(_on_ep_event);
-    //cord_ep_standalone_run();
-   
-    printf("DEBUG_RD_ADDRESS: %s", CORD_EP_ADDRESS);
-    
-   // while(_register(CORD_EP_ADDRESS)){
-   //     puts("Try again to register to RD deamon");
-   // }
+    saul_cord_ep_register_cb(_on_ep_event);
+    saul_cord_ep_register(CORD_EP_ADDRESS); 
    
     char line_buf[SHELL_DEFAULT_BUFSIZE];
     shell_run(NULL, line_buf, SHELL_DEFAULT_BUFSIZE);
 
     return 0;
 }
+
