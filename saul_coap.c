@@ -335,7 +335,7 @@ static ssize_t _servo_type_responder(coap_pkt_t* pdu, uint8_t *buf, size_t len, 
             //parse whatever to phydat
             //functions to execute
             //dim = saul_reg_write(dev, res); // &res -as saul_reg_read store location or *res data to write?
-            // return gcoap_response(pdu, buf, len, COAP_CODE_404);
+             return gcoap_response(pdu, buf, len, COAP_CODE_404);
         }
     }
     if (dim <= 0) {
