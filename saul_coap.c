@@ -294,7 +294,7 @@ static ssize_t _atr_type_responder(coap_pkt_t* pdu, uint8_t *buf, size_t len, ui
     return resp_len;
 }
 
-static ssize_t _saul_servo_handler(coap_pkt_t* pdu, uint8_t *buf, size_t len, void *ctx)
+static ssize_t _saul_winch_handler(coap_pkt_t* pdu, uint8_t *buf, size_t len, void *ctx)
 {
     uint8_t type;
 
@@ -312,7 +312,7 @@ static ssize_t _saul_servo_handler(coap_pkt_t* pdu, uint8_t *buf, size_t len, vo
     return _servo_type_responder(pdu, buf, len, type);
 }
 
-static ssize_t _servo_type_responder(coap_pkt_t* pdu, uint8_t *buf, size_t len, uint8_t type)
+static ssize_t _winch_type_responder(coap_pkt_t* pdu, uint8_t *buf, size_t len, uint8_t type)
 {
     saul_reg_t *dev = saul_reg_find_type(type);
     phydat_t res;
@@ -353,3 +353,99 @@ static ssize_t _servo_type_responder(coap_pkt_t* pdu, uint8_t *buf, size_t len, 
     resp_len += fmt_u16_dec((char *)pdu->payload, res.val[0]);
     return resp_len;
 }
+
+
+CborError export_cbor_to_phydat(CborParser *parser, uint8_t *cbor_buf, size_t buf_len, phydat_t data, int dim)
+{
+    //CborParser parser;
+    CborValue value, r;
+    int result;
+    err = CborNoError;
+    bool result;
+
+    //initialize Cbor parser
+    err = cbor_parser_init(cbor_buf, buf_len, 0, parser, &value);
+    if (err != CborNoError) {
+        return err;
+    }
+
+    //check if map exists
+    if(!cbor_value_is_map(&value) || cbor_value_is_null(&value)){
+        return 0;
+    }
+
+    //enter container if map exists
+    //CborError cbor_value_enter_container  (   const CborValue *   it,CborValue *     recursed )
+    err = cbor_value_enter_container(&value, &r) ;
+       if (err != CborNoError) {
+        return err;
+    }
+
+    //check for values
+    if(!cbor_value_is_text_string(&r)){
+        return 0;
+    }
+    
+    cbor_value_text_string_equals(&r, "values", &result);
+    
+    if(!result){
+        return 0
+    }
+    cbor_value_advance(&r);
+
+    if(!cbor_value_is_array(&r)){
+        return 0;
+    }
+        
+    for (uint8_t i = 0; i < dim; i++) {
+        err = cbor_value_get_int_checked(&r, &data.val[i]);
+        if (err != CborNoError) {
+            return err;
+        }
+    }
+
+    //check for unit
+
+    if(!cbor_value_is_text_string(&r)){
+        return 0;
+    }
+
+    cbor_value_text_string_equals(&r, "unit", &result);
+    
+    if(!result){
+        return 0;
+    }
+    cbor_value_advance(&r);
+    if(!cbor_value_is_array(&r)){
+        return 0;
+    }
+
+    err = cbor_value_get_int_checked(&r, &data.unit);
+    if (err != CborNoError) {
+         return err;
+    }
+
+    //check for scale
+
+    if(!cbor_value_is_text_string(&r)){
+        return 0;
+    }
+
+    cbor_value_text_string_equals(&r, "scale", &result);
+    
+    if(!result){
+        return 0;
+    }
+    cbor_value_advance(&r);
+    if(!cbor_value_is_array(&r)){
+        return 0;
+    }
+
+    err = cbor_value_get_int_checked(&r, &data.scale);
+    if (err != CborNoError) {
+         return err;
+    }
+
+    return CborNoError;
+}
+
