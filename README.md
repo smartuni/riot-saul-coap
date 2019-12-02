@@ -49,4 +49,7 @@ To distinguish multiple boards using SERIAL number
 To test get command 
 
     coap get <ip address> 5683 <resource>
+    
+With DTLS, port number is 5684
+
 
