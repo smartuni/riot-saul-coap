@@ -39,4 +39,16 @@ connected to the RIOT router and receives a public IP address.
 
 [#9]: https://github.com/rosetree/riot-saul-coap/pull/9
 
+# Work in Progress
+
+- Register to Raspberry Pi Resource Directory ([#14][])
+- Enable PUT for actuator data ([#10][])
+- Submit values via a defined cbor interface ([#12][])
+- Encrypt CoAP with DTLS ([#18][])
+
+[#14]: https://github.com/rosetree/riot-saul-coap/issues/14
+[#10]: https://github.com/rosetree/riot-saul-coap/issues/10
+[#12]: https://github.com/rosetree/riot-saul-coap/issues/12
+[#18]: https://github.com/rosetree/riot-saul-coap/issues/18
+
 # Questions & Discussion
