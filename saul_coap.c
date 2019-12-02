@@ -45,7 +45,7 @@ static ssize_t _sense_servo_handler(coap_pkt_t* pdu, uint8_t *buf, size_t len, v
 static ssize_t _sense_press_handler(coap_pkt_t* pdu, uint8_t *buf, size_t len, void *ctx);
 static ssize_t _sense_voltage_handler(coap_pkt_t* pdu, uint8_t *buf, size_t len, void *ctx);
 /* winch handler */ 
-static ssize_t _saul_winch_handler(coap_pkt_t* pdu, uint8_t *buf, size_t len, void *ctx);
+//static ssize_t _saul_winch_handler(coap_pkt_t* pdu, uint8_t *buf, size_t len, void *ctx);
 
 /* CoAP resources. Must be sorted by path (ASCII order). */
 static const coap_resource_t _resources[] = {
@@ -58,7 +58,7 @@ static const coap_resource_t _resources[] = {
     { "/servo", COAP_GET, _sense_servo_handler, NULL },
     { "/temp", COAP_GET, _sense_temp_handler, NULL },
     { "/voltage", COAP_GET, _sense_voltage_handler, NULL },
-    { "/winch", COAP_PUT, _saul_winch_handler, NULL},
+    //{ "/winch", COAP_PUT, _saul_winch_handler, NULL},
 
 };
 
@@ -171,7 +171,7 @@ static ssize_t _sense_type_responder(coap_pkt_t* pdu, uint8_t *buf, size_t len, 
 {
     saul_reg_t *dev = saul_reg_find_type(type);
     phydat_t res;
-    int dim;
+    int dim = 0;
     size_t resp_len;
 
     gcoap_resp_init(pdu, buf, len, COAP_CODE_CONTENT);
@@ -270,7 +270,7 @@ static ssize_t _atr_type_responder(coap_pkt_t* pdu, uint8_t *buf, size_t len, ui
 {
     saul_reg_t *dev = saul_reg_find_type(type);
     phydat_t res;
-    int dim;
+    int dim = 0;
     size_t resp_len;
     gcoap_resp_init(pdu, buf, len, COAP_CODE_CONTENT);
     coap_opt_add_format(pdu, COAP_FORMAT_TEXT);
@@ -309,8 +309,7 @@ CborError export_cbor_to_phydat(CborParser *parser, uint8_t *cbor_buf, size_t bu
 {
     //CborParser parser;
     CborValue value, r;
-    int result;
-    bool result;
+    bool resultbool;
     CborError err = CborNoError;
 
     //initialize Cbor parser
@@ -336,19 +335,22 @@ CborError export_cbor_to_phydat(CborParser *parser, uint8_t *cbor_buf, size_t bu
         return 0;
     }
     
-    cbor_value_text_string_equals(&r, "values", &result);
+    cbor_value_text_string_equals(&r, "values", &resultbool);
     
-    if(!result){
-        return 0
+    if(!resultbool){
+        return 0;
     }
     cbor_value_advance(&r);
 
     if(!cbor_value_is_array(&r)){
         return 0;
     }
-        
+        /***************************************** check ******************************/
     for (uint8_t i = 0; i < dim; i++) {
-        err = cbor_value_get_int_checked(&r, &data.val[i]);
+	int16_t *p;
+	p = data.val;
+	int temp = *p++;
+        err = cbor_value_get_int_checked(&r, &temp);
         if (err != CborNoError) {
             return err;
         }
@@ -360,9 +362,9 @@ CborError export_cbor_to_phydat(CborParser *parser, uint8_t *cbor_buf, size_t bu
         return 0;
     }
 
-    cbor_value_text_string_equals(&r, "unit", &result);
+    cbor_value_text_string_equals(&r, "unit", &resultbool);
     
-    if(!result){
+    if(!resultbool){
         return 0;
     }
     cbor_value_advance(&r);
@@ -370,7 +372,9 @@ CborError export_cbor_to_phydat(CborParser *parser, uint8_t *cbor_buf, size_t bu
         return 0;
     }
 
-    err = cbor_value_get_int_checked(&r, &data.unit);
+/*   uint8_t unit;  */
+    int unit = data.unit;
+    err = cbor_value_get_int_checked(&r, &unit);
     if (err != CborNoError) {
          return err;
     }
@@ -381,9 +385,9 @@ CborError export_cbor_to_phydat(CborParser *parser, uint8_t *cbor_buf, size_t bu
         return 0;
     }
 
-    cbor_value_text_string_equals(&r, "scale", &result);
+    cbor_value_text_string_equals(&r, "scale", &resultbool);
     
-    if(!result){
+    if(!resultbool){
         return 0;
     }
     cbor_value_advance(&r);
@@ -391,7 +395,9 @@ CborError export_cbor_to_phydat(CborParser *parser, uint8_t *cbor_buf, size_t bu
         return 0;
     }
 
-    err = cbor_value_get_int_checked(&r, &data.scale);
+	// int8_t scale;  
+    int scale = data.scale;
+    err = cbor_value_get_int_checked(&r, &scale);
     if (err != CborNoError) {
          return err;
     }
