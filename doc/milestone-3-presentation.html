@@ -1,0 +1,200 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+ "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <meta http-equiv="Content-Style-Type" content="text/css" />
+  <meta name="generator" content="pandoc" />
+  <meta name="author" content="@MatthiasBraeuer &amp; @seojeongmoon &amp; @rosetree" />
+  <meta name="date" content="2019-12-02" />
+  <title>Saul via CoAP (Milestone 3)</title>
+  <style type="text/css">
+      code{white-space: pre-wrap;}
+      span.smallcaps{font-variant: small-caps;}
+      span.underline{text-decoration: underline;}
+      div.column{display: inline-block; vertical-align: top; width: 50%;}
+  </style>
+  <style type="text/css">
+a.sourceLine { display: inline-block; line-height: 1.25; }
+a.sourceLine { pointer-events: none; color: inherit; text-decoration: inherit; }
+a.sourceLine:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode { white-space: pre; position: relative; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+code.sourceCode { white-space: pre-wrap; }
+a.sourceLine { text-indent: -1em; padding-left: 1em; }
+}
+pre.numberSource a.sourceLine
+  { position: relative; left: -4em; }
+pre.numberSource a.sourceLine::before
+  { content: attr(title);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; pointer-events: all; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+    color: #aaaaaa;
+  }
+pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa;  padding-left: 4px; }
+div.sourceCode
+  {  }
+@media screen {
+a.sourceLine::before { text-decoration: underline; }
+}
+code span.al { color: #ff0000; font-weight: bold; } /* Alert */
+code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
+code span.at { color: #7d9029; } /* Attribute */
+code span.bn { color: #40a070; } /* BaseN */
+code span.bu { } /* BuiltIn */
+code span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
+code span.ch { color: #4070a0; } /* Char */
+code span.cn { color: #880000; } /* Constant */
+code span.co { color: #60a0b0; font-style: italic; } /* Comment */
+code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
+code span.do { color: #ba2121; font-style: italic; } /* Documentation */
+code span.dt { color: #902000; } /* DataType */
+code span.dv { color: #40a070; } /* DecVal */
+code span.er { color: #ff0000; font-weight: bold; } /* Error */
+code span.ex { } /* Extension */
+code span.fl { color: #40a070; } /* Float */
+code span.fu { color: #06287e; } /* Function */
+code span.im { } /* Import */
+code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
+code span.kw { color: #007020; font-weight: bold; } /* Keyword */
+code span.op { color: #666666; } /* Operator */
+code span.ot { color: #007020; } /* Other */
+code span.pp { color: #bc7a00; } /* Preprocessor */
+code span.sc { color: #4070a0; } /* SpecialChar */
+code span.ss { color: #bb6688; } /* SpecialString */
+code span.st { color: #4070a0; } /* String */
+code span.va { color: #19177c; } /* Variable */
+code span.vs { color: #4070a0; } /* VerbatimString */
+code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
+  </style>
+  <link rel="stylesheet" type="text/css" media="screen, projection, print"
+    href="https://www.w3.org/Talks/Tools/Slidy2/styles/slidy.css" />
+  <script src="https://www.w3.org/Talks/Tools/Slidy2/scripts/slidy.js"
+    charset="utf-8" type="text/javascript"></script>
+</head>
+<body>
+<div class="slide titlepage">
+  <h1 class="title">Saul via CoAP (Milestone 3)</h1>
+  <p class="author">
+<span class="citation">@MatthiasBraeuer</span> &amp; <span class="citation">@seojeongmoon</span> &amp; <span class="citation">@rosetree</span>
+  </p>
+  <p class="date">2019-12-02</p>
+</div>
+<div id="idea-outline" class="slide section level1">
+<h1>Idea &amp; Outline</h1>
+<p>Fetch saul sensor data via CoAP.</p>
+<ul>
+<li>Merged Pull Requests</li>
+<li>Work in Progress
+<ul>
+<li>Details on <code>phydat_t</code> as CBOR</li>
+</ul></li>
+<li>Open Issues</li>
+</ul>
+</div>
+<div id="merged-pull-request-saul-types" class="slide section level1">
+<h1>Merged Pull Request: saul types</h1>
+<p>As of <a href="https://github.com/rosetree/riot-saul-coap/issues/14">#14</a>, we now support the following saul types:</p>
+<ul>
+<li>Humidity (<code>/hum</code>)</li>
+<li>Pressure (<code>/press</code>)</li>
+<li>Servo (<code>/servo</code>)</li>
+<li>Temperature (<code>/temp</code>)</li>
+<li>Voltage (<code>/voltage</code>)</li>
+</ul>
+</div>
+<div id="merged-pull-request-code-clean-up" class="slide section level1">
+<h1>Merged Pull Request: Code Clean Up</h1>
+<p>We cleaned the code of this project.</p>
+<ul>
+<li>Replace function <code>make_msg</code> with <code>snprintf</code> (<a href="https://github.com/rosetree/riot-saul-coap/pull/15">#15</a>)</li>
+<li>Define type via context instead of wrapping handlers (<a href="https://github.com/rosetree/riot-saul-coap/pull/13">#13</a>)</li>
+</ul>
+</div>
+<div id="merged-pull-request-router-communication" class="slide section level1">
+<h1>Merged Pull Request: router communication</h1>
+<p>With <a href="https://github.com/rosetree/riot-saul-coap/pull/9">#9</a> the Makefile got updates, so that the project can be connected to the RIOT router and receives a public IP address.</p>
+<p>Allows connection from the Web-App 🌐🥂📱</p>
+</div>
+<div id="work-in-progress" class="slide section level1">
+<h1>Work in Progress</h1>
+<ul>
+<li>Register to Raspberry Pi Resource Directory (<a href="https://github.com/rosetree/riot-saul-coap/issues/14">#14</a>)</li>
+<li>Enable <code>PUT</code> for actuator data (<a href="https://github.com/rosetree/riot-saul-coap/issues/10">#10</a>)</li>
+<li>Respond with phydat as CBOR (<a href="https://github.com/rosetree/riot-saul-coap/issues/19">#19</a>)</li>
+<li>Encrypt CoAP with DTLS (<a href="https://github.com/rosetree/riot-saul-coap/issues/18">#18</a>)</li>
+</ul>
+</div>
+<div id="wip-cbor-interface" class="slide section level1">
+<h1>WIP: CBOR interface</h1>
+<ul>
+<li>Concise Binary Object Representation (CBOR)</li>
+<li>a data format based on the JSON data model</li>
+<li>documentation on <a href="https://cbor.io">cbor.io</a> and test on <a href="http://cbor.me">cbor.me</a></li>
+</ul>
+</div>
+<div class="slide section level1">
+
+<p>The following JSON object:</p>
+<div class="sourceCode" id="cb1"><pre class="sourceCode json"><code class="sourceCode json"><a class="sourceLine" id="cb1-1" title="1"><span class="fu">{</span></a>
+<a class="sourceLine" id="cb1-2" title="2">    <span class="dt">&quot;foo&quot;</span><span class="fu">:</span> <span class="dv">47</span><span class="fu">,</span></a>
+<a class="sourceLine" id="cb1-3" title="3">    <span class="dt">&quot;bar&quot;</span><span class="fu">:</span> <span class="st">&quot;baz&quot;</span><span class="fu">,</span></a>
+<a class="sourceLine" id="cb1-4" title="4">    <span class="dt">&quot;bam&quot;</span><span class="fu">:</span> <span class="ot">[</span><span class="dv">2</span><span class="ot">,</span> <span class="dv">3</span><span class="ot">,</span> <span class="dv">5</span><span class="ot">,</span> <span class="dv">7</span><span class="ot">]</span></a>
+<a class="sourceLine" id="cb1-5" title="5"><span class="fu">}</span></a></code></pre></div>
+<p>looks like this in CBOR:</p>
+<pre><code>A3 63 666F6F 18 2F 63 626172 63 62617A 63 62616D 84 02 03 05 07</code></pre>
+<p><a href="http://cbor.me/?diag=%7B%22foo%22:%2047,%22bar%22:%20%22baz%22,%22bam%22:%20%5B2,%203,%205,%207%5D%7D">Explanation on <code>CBOR.me</code></a></p>
+</div>
+<div id="wip-phydat_t-to-cbor" class="slide section level1">
+<h1>WIP: <code>phydat_t</code> to CBOR</h1>
+<p>The structure used in saul is <a href="https://riot-os.org/api/structphydat__t.html"><code>phydat_t</code></a>.</p>
+<div class="sourceCode" id="cb3"><pre class="sourceCode c"><code class="sourceCode c"><a class="sourceLine" id="cb3-1" title="1"><span class="kw">typedef</span> <span class="kw">struct</span> {</a>
+<a class="sourceLine" id="cb3-2" title="2">    <span class="dt">int16_t</span> val[PHYDAT_DIM];</a>
+<a class="sourceLine" id="cb3-3" title="3">    <span class="dt">uint8_t</span> unit;</a>
+<a class="sourceLine" id="cb3-4" title="4">    <span class="dt">int8_t</span> scale;</a>
+<a class="sourceLine" id="cb3-5" title="5">} phydat_t;</a></code></pre></div>
+<p><code>phydat_t</code> can be adapted to JSON (and thus CBOR):</p>
+<div class="sourceCode" id="cb4"><pre class="sourceCode json"><code class="sourceCode json"><a class="sourceLine" id="cb4-1" title="1"><span class="fu">{</span></a>
+<a class="sourceLine" id="cb4-2" title="2">   <span class="dt">&quot;values&quot;</span><span class="fu">:</span> <span class="ot">[</span> <span class="dv">41</span><span class="ot">,</span> <span class="dv">43</span><span class="ot">,</span> <span class="dv">47</span> <span class="ot">]</span><span class="fu">,</span></a>
+<a class="sourceLine" id="cb4-3" title="3">   <span class="dt">&quot;unit&quot;</span><span class="fu">:</span> <span class="dv">51</span><span class="fu">,</span></a>
+<a class="sourceLine" id="cb4-4" title="4">   <span class="dt">&quot;scale&quot;</span><span class="fu">:</span> <span class="dv">2</span></a>
+<a class="sourceLine" id="cb4-5" title="5"><span class="fu">}</span></a></code></pre></div>
+</div>
+<div id="progress-of-the-cbor-response" class="slide section level1">
+<h1>Progress of the CBOR response</h1>
+<ul>
+<li>Implemented for <code>GET</code> requests of saul sense types.</li>
+<li>“Works on my machine.”</li>
+<li>Using the [tinycbor][] package.</li>
+<li>Affects other projects: Might need some more documentation.</li>
+</ul>
+</div>
+<div id="open-issues" class="slide section level1">
+<h1>Open Issues</h1>
+<ul>
+<li>Only the first value for each type is returned (<a href="https://github.com/rosetree/riot-saul-coap/issues/8">#8</a>)
+<ul>
+<li>only the first device of the requested saul class</li>
+<li>only the first value of the selected device (WIP on <a href="https://github.com/rosetree/riot-saul-coap/issues/19">#19</a>)</li>
+</ul></li>
+<li><code>/saul/dev</code> should not use <code>POST</code> (<a href="https://github.com/rosetree/riot-saul-coap/issues/7">#7</a>)</li>
+<li>Publish as RIOT package or module (<a href="https://github.com/rosetree/riot-saul-coap/issues/17">#17</a>)</li>
+<li>Air pressure value from updated RIOT project (<span class="citation">@AlexFuhr</span>, <a href="https://github.com/rosetree/riot-saul-coap/issues/16">#16</a>)</li>
+</ul>
+</div>
+<div id="questions-discussion" class="slide section level1">
+<h1>Questions &amp; Discussion</h1>
+</div>
+</body>
+</html>
