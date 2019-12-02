@@ -4,10 +4,11 @@
 
 # Idea & Outline
 
-Fetch sensor data via CoAP.
+Fetch saul sensor data via CoAP.
 
 - Merged Pull Requests
 - Work in Progress
+  - Details on `phydat_t` as CBOR
 - Open Issues
 
 # Merged Pull Request: saul types
