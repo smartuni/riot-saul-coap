@@ -37,6 +37,8 @@ We cleaned the code of this project.
 With [#9][] the Makefile got updates, so that the project can be
 connected to the RIOT router and receives a public IP address.
 
+Allows connection from the Web-App 🌐🥂📱
+
 [#9]: https://github.com/rosetree/riot-saul-coap/pull/9
 
 # Work in Progress
