@@ -25,6 +25,7 @@
 #include "saul_reg.h"
 #include "fmt.h"
 #include "net/gcoap.h"
+#include "cbor.h"
 #inculde "winch.h"
 
 extern char *make_msg(char *, ...);
@@ -251,6 +252,7 @@ static ssize_t _saul_atr_handler(coap_pkt_t* pdu, uint8_t *buf, size_t len, void
 
     (void)ctx;
 
+   //payload length has to be bigger - edit according to expected size
     if (pdu->payload_len <= 5) {
         char req_payl[6] = { 0 };
         memcpy(req_payl, (char *)pdu->payload, pdu->payload_len);
@@ -282,8 +284,7 @@ static ssize_t _atr_type_responder(coap_pkt_t* pdu, uint8_t *buf, size_t len, ui
         }
         else {
             phydat_dump(&res, type);//phydat.h
-            dim = saul_reg_write(dev, &res); // &res -as saul_reg_read store location or *res data to write?
-            // return gcoap_response(pdu, buf, len, COAP_CODE_404);
+            dim = saul_reg_write(dev, &res); 
         }
     }
     if (dim <= 0) {
@@ -324,7 +325,8 @@ static ssize_t _saul_winch_handler(coap_pkt_t* pdu, uint8_t *buf, size_t len, vo
     uint8_t type;
 
     (void)ctx;
-
+   
+   //change payload size - according to expected parameters etc.
     if (pdu->payload_len <= 5) {
         char req_payl[6] = { 0 };
         memcpy(req_payl, (char *)pdu->payload, pdu->payload_len);
@@ -345,6 +347,7 @@ static ssize_t _winch_type_responder(coap_pkt_t* pdu, uint8_t *buf, size_t len, 
     int dim;
     size_t resp_len;
     gcoap_resp_init(pdu, buf, len, COAP_CODE_CONTENT);
+   /* option of text and cbor format*/
     coap_opt_add_format(pdu, COAP_FORMAT_TEXT);
     //coap_opt_add_format(pdu, COAP_FORMAT_CBOR);
     resp_len = coap_opt_finish(pdu, COAP_OPT_FINISH_PAYLOAD);
