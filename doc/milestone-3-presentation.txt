@@ -51,4 +51,16 @@ connected to the RIOT router and receives a public IP address.
 [#12]: https://github.com/rosetree/riot-saul-coap/issues/12
 [#18]: https://github.com/rosetree/riot-saul-coap/issues/18
 
+# Open Issues
+
+- Only the first value for each type is returned ([#8][])
+  - only the first device of the requested saul class
+  - only the first value of the selected device (WIP on [#12][])
+- `/saul/dev` should not use `POST` ([#7][])
+- Publish as RIOT package or module ([#17][])
+
+[#8]: https://github.com/rosetree/riot-saul-coap/issues/8
+[#7]: https://github.com/rosetree/riot-saul-coap/issues/7
+[#17]: https://github.com/rosetree/riot-saul-coap/issues/17
+
 # Questions & Discussion
