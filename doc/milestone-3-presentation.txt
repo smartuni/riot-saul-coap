@@ -26,7 +26,7 @@ As of [#14][], we now support the following saul types:
 
 We cleaned the code of this project.
 
-- Replace function make_msg with snprintf ([#15][])
+- Replace function `make_msg` with `snprintf` ([#15][])
 - Define type via context instead of wrapping handlers ([#13][])
 
 [#13]: https://github.com/rosetree/riot-saul-coap/pull/13
@@ -42,7 +42,7 @@ connected to the RIOT router and receives a public IP address.
 # Work in Progress
 
 - Register to Raspberry Pi Resource Directory ([#14][])
-- Enable PUT for actuator data ([#10][])
+- Enable `PUT` for actuator data ([#10][])
 - Submit values via a defined cbor interface ([#12][])
 - Encrypt CoAP with DTLS ([#18][])
 
