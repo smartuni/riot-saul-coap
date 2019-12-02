@@ -105,9 +105,14 @@ typedef struct {
 }
 ```
 
-Affects the usage in the Web-App…
-
 [`phydat_t`]: https://riot-os.org/api/structphydat__t.html
+
+# Progress of the CBOR response
+
+- Implemented for `GET` requests of saul sense types.
+- “Works on my machine.”
+- Using the [tinycbor][] package.
+- Affects other projects: Might need some more documentation.
 
 # Open Issues
 
