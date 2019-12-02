@@ -1,0 +1,42 @@
+% Saul via CoAP (Milestone 3)
+% @MatthiasBraeuer & @seojeongmoon & @rosetree
+% 2019-12-02
+
+# Idea & Outline
+
+Fetch sensor data via CoAP.
+
+- Merged Pull Requests
+- Work in Progress
+- Open Issues
+
+# Merged Pull Request: saul types
+
+As of [#14][], we now support the following saul types:
+
+- Humidity (`/hum`)
+- Pressure (`/press`)
+- Servo (`/servo`)
+- Temperature (`/temp`)
+- Voltage (`/voltage`)
+
+[#4]: https://github.com/rosetree/riot-saul-coap/pull/4
+
+# Merged Pull Request: Code Clean Up
+
+We cleaned the code of this project.
+
+- Replace function make_msg with snprintf ([#15][])
+- Define type via context instead of wrapping handlers ([#13][])
+
+[#13]: https://github.com/rosetree/riot-saul-coap/pull/13
+[#15]: https://github.com/rosetree/riot-saul-coap/pull/15
+
+# Merged Pull Request: router communication
+
+With [#9][] the Makefile got updates, so that the project can be
+connected to the RIOT router and receives a public IP address.
+
+[#9]: https://github.com/rosetree/riot-saul-coap/pull/9
+
+# Questions & Discussion
