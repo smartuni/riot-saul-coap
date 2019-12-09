@@ -30,6 +30,8 @@ static ssize_t _saul_cnt_handler(coap_pkt_t* pdu, uint8_t *buf, size_t len, void
 static ssize_t _saul_dev_handler(coap_pkt_t* pdu, uint8_t *buf, size_t len, void *ctx);
 static ssize_t _saul_sensortype_handler(coap_pkt_t* pdu, uint8_t *buf, size_t len, void *ctx);
 static ssize_t _saul_type_handler(coap_pkt_t* pdu, uint8_t *buf, size_t len, void *ctx);
+static ssize_t _encode_link(const coap_resource_t *resource, char *buf,
+                            size_t maxlen, coap_link_encoder_ctx_t *context);
 
 CborError export_phydat_to_cbor(CborEncoder *encoder, uint8_t *cbor_buf, size_t buf_len, phydat_t data, int dim);
 
@@ -52,14 +54,50 @@ static const coap_resource_t _resources[] = {
     { "/voltage", COAP_GET, _saul_type_handler, &class_voltage },
 };
 
+static const char *_link_params[] = {
+    ";rt=\"hum\"",
+    ";rt=\"press\"",
+    ";rt=\"count\"",
+    ";rt=\"dev\"",
+    ";rt=\"sensor\"",
+    ";rt=\"servo\"",
+    ";rt=\"temp\"",
+    ";rt=\"voltage\"",
+};
+
 static gcoap_listener_t _listener = {
     &_resources[0],
     sizeof(_resources) / sizeof(_resources[0]),
-    NULL,
+    _encode_link,
     NULL
 };
 
 static uint8_t cbor_buf[64] = { 0 };
+
+/** 
+ * Add link format params to resource list
+ *
+ * TODO
+ */
+static ssize_t _encode_link(const coap_resource_t *resource, char *buf,
+                            size_t maxlen, coap_link_encoder_ctx_t *context) {
+    ssize_t res = gcoap_encode_link(resource, buf, maxlen, context);
+    if (res > 0) {
+	puts(_link_params[context->link_pos]);
+	printf("MAX-LEN: %d", maxlen);
+	printf("ACTUAL-LEN: %d", (strlen(_link_params[context->link_pos])));
+        if (_link_params[context->link_pos]
+                && (strlen(_link_params[context->link_pos]) < (maxlen - res))) {
+            if (buf) {
+                memcpy(buf+res, _link_params[context->link_pos],
+                       strlen(_link_params[context->link_pos]));
+            }
+            return res + strlen(_link_params[context->link_pos]);
+        }
+    }
+
+    return res;
+}
 
 static ssize_t _saul_dev_handler(coap_pkt_t* pdu, uint8_t *buf, size_t len, void *ctx)
 {
