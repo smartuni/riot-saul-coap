@@ -206,13 +206,13 @@ static ssize_t _saul_type_handler(coap_pkt_t* pdu, uint8_t *buf, size_t len, voi
 
         if (dim > 0) {
             cbor_err = export_phydat_to_cbor(&aryEncoder, res, dim);
-            buf_size = cbor_encoder_get_buffer_size(&encoder, cbor_buf);
         }
 
         dev = dev->next;
     }
 
     cbor_err = cbor_encoder_close_container(&encoder, &aryEncoder);
+    buf_size = cbor_encoder_get_buffer_size(&encoder, cbor_buf);
 
     if (cbor_err == CborNoError && buf_size > 0 && pdu->payload_len >= buf_size) {
         memcpy(pdu->payload, cbor_buf, buf_size);
