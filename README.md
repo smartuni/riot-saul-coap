@@ -40,10 +40,11 @@ The idea of these resources is, to offer similar functionality as the
 - `/saul/dev` (POST) needs an ID as argument. Returns some information
   about the sensor for that ID (name and type). 
 
-## Phydat as CBOR
+## Phydat in Concise Binary Object Representation (CBOR)
 
 In all resources by sensor type, we return the [`phydat_t` struct][]
-as [CBOR][]. [CBOR example][] of an temperature sensor:
+in the [CBOR][] data format. In the following code block, you can see
+a [CBOR example][] of what could be returned for a temperature sensor:
 
 ```
 A3                 # map(3)
@@ -59,7 +60,8 @@ A3                 # map(3)
    21              # negative(1)
 ```
 
-This translates to the following JSON:
+If you want to use this resource, you can parse it to JSON. The
+example above translates to the following JSON object:
 
 ``` json
 {"values": [2393], "unit": 2, "scale": -2}
