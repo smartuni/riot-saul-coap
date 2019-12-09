@@ -15,11 +15,17 @@
  *
  * @}
  */
+#ifndef SAUL_CORD_EP_H
+#define SAUL_CORD_EP_H
 
 #include "net/nanocoap.h"
 #include "net/cord/config.h"
 #include "net/cord/ep.h"
 #include "net/sock/util.h"
+
+#ifdef __cplusplus
+ extern "C" {
+#endif
 
 /**
  * @brief Possible types of events when interacting with a Resource Directory. 
@@ -69,4 +75,11 @@ void saul_cord_ep_run(void);
  * @param[in] cb The callback to be executed on RD endpoint state changes 
  */
 void saul_cord_ep_register_cb(saul_cord_ep_cb_t cb);
+
+
+#ifdef __cplusplus
+}
+#endif
+
+#endif /* SAUL_CORD_EP_H */
 
