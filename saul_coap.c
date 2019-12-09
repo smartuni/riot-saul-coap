@@ -173,7 +173,7 @@ static ssize_t _saul_type_handler(coap_pkt_t* pdu, uint8_t *buf, size_t len, voi
     saul_reg_t *dev = saul_reg_find_type(type);
     phydat_t res;
     int dim;
-    size_t resp_len, buf_size;
+    size_t resp_len, buf_size = 0;
     CborEncoder encoder, aryEncoder;
     CborError cbor_err = CborNoError;
 
