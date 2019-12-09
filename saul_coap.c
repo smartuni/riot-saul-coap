@@ -201,10 +201,12 @@ static ssize_t _saul_type_handler(coap_pkt_t* pdu, uint8_t *buf, size_t len, voi
     }
 
     while (dev != NULL && cbor_err == CborNoError) {
-        dim = saul_reg_read(dev, &res);
+        if (dev->driver->type == type) {
+            dim = saul_reg_read(dev, &res);
 
-        if (dim > 0) {
-            cbor_err = export_phydat_to_cbor(&aryEncoder, res, dim);
+	    if (dim > 0) {
+                cbor_err = export_phydat_to_cbor(&aryEncoder, res, dim);
+            }
         }
 
         dev = dev->next;
