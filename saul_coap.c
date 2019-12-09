@@ -197,6 +197,7 @@ static ssize_t _saul_type_handler(coap_pkt_t* pdu, uint8_t *buf, size_t len, voi
 
     cbor_err = cbor_encoder_create_array(&encoder, &aryEncoder, CborIndefiniteLength);
     if (cbor_err != CborNoError) {
+	puts("Couldn’t create an cbor array");
         return gcoap_response(pdu, buf, len, COAP_CODE_INTERNAL_SERVER_ERROR);
     }
 
@@ -217,6 +218,10 @@ static ssize_t _saul_type_handler(coap_pkt_t* pdu, uint8_t *buf, size_t len, voi
         memcpy(pdu->payload, cbor_buf, buf_size);
         resp_len += buf_size;
     } else {
+	puts("Could not reply with the cbor data.");
+	if (cbor_err != CborNoError) puts("CborError occured");
+	if (buf_size <= 0) puts("Buffer size is <= 0");
+	if (pdu->payload_len < buf_size) puts("Payload length is to short for buffer");
         resp_len = gcoap_response(pdu, buf, len, COAP_CODE_INTERNAL_SERVER_ERROR);
     }
 
