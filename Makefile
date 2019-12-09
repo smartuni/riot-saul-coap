@@ -7,8 +7,13 @@ BOARD ?= native
 # This has to be the absolute path to the RIOT base directory:
 RIOTBASE ?= $(CURDIR)/RIOT
 
+
 BOARD_INSUFFICIENT_MEMORY := arduino-duemilanove arduino-leonardo arduino-nano \
                              arduino-uno
+
+# Increase from default for confirmable block2 follow-on requests
+GCOAP_RESEND_BUFS_MAX ?= 2
+CFLAGS += -DGCOAP_RESEND_BUFS_MAX=$(GCOAP_RESEND_BUFS_MAX)
 
 # Include packages that pull up and auto-init the link layer.
 # NOTE: 6LoWPAN will be included if IEEE802.15.4 devices are present
@@ -37,6 +42,11 @@ USEMODULE += shell_commands
 USEMODULE += ps
 
 USEMODULE += netstats_l2
+
+USEMODULE += bme280_i2c
+CFLAGS+=-DESP_WIFI_SSID=\"hack_n_ack\"
+CFLAGS+=-DESP_WIFI_PASS=\"ThefriendlyOSfortheIoT\"
+USEMODULE += esp_wifi
 
 # Include tinycbor for data representation
 USEPKG += tinycbor
