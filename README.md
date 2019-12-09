@@ -38,6 +38,9 @@ The idea of these resources is, to offer similar functionality as the
 
 
 ## Build and Execute
+
+Directory: X/riot-saul-coap/RIOT/examples/gcoap/
+
 Enter shell with board command (Phytec)
 
     SERIAL=... BOARD=pba-d-01-kw2x BUILD_IN_DOCKER=1 make all flash term
