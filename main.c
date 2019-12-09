@@ -31,19 +31,17 @@ static msg_t _main_msg_queue[MAIN_QUEUE_SIZE];
 extern void saul_coap_init(void);
 
 /* we will use custom event handler for dumping cord_ep events */
-static void _on_ep_event(cord_ep_standalone_event_t event)
+static void _on_ep_event(saul_cord_ep_event_t event)
 {
     switch (event) {
-        case CORD_EP_REGISTERED:
-            puts("DEBUG: RD endpoint event: now registered with a RD");
+        case SAUL_CORD_EP_REGISTERED:
+            puts("DEBUG: Registered successfully with RD");
             break;
-        case CORD_EP_DEREGISTERED:
-            puts("DEBUG: RD endpoint event: dropped client registration");
-            puts("DEBUG: You should try to register again:)");
-            //saul_cord_ep_register(CORD_EP_ADDRESS);
+        case SAUL_CORD_EP_DEREGISTERED:
+            puts("DEBUG: Deregistered from RD");
             break;
-        case CORD_EP_UPDATED:
-            puts("DEBUG: RD endpoint event: successfully updated client registration");
+        case SAUL_CORD_EP_UPDATED:
+            puts("DEBUG: Updated successfully the client registration");
             break;
     }
 }
@@ -58,7 +56,8 @@ int main(void)
     msg_init_queue(_main_msg_queue, MAIN_QUEUE_SIZE);
 
     saul_cord_ep_register_cb(_on_ep_event);
-    saul_cord_ep_register(CORD_EP_ADDRESS); 
+    saul_cord_ep_create(CORD_EP_ADDRESS);
+    saul_cord_ep_run(); 
    
     char line_buf[SHELL_DEFAULT_BUFSIZE];
     shell_run(NULL, line_buf, SHELL_DEFAULT_BUFSIZE);

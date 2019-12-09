@@ -30,20 +30,21 @@ USEMODULE += fmt
 
 # we want to use SAUL:
 USEMODULE += saul_default
-# include RIOT's resource directory endpoint
-USEMODULE += cord_ep_standalone
 # include the shell:
 USEMODULE += shell
 USEMODULE += shell_commands
 # additional modules for debugging:
 USEMODULE += ps
 
+# Module for registering to Resource Directory (RD) 
+USEMODULE += cord_ep
+
 # needed so that the board can be reached
 USEMODULE += netstats_l2
 CFLAGS += -DGNRC_IPV6_NIB_CONF_SLAAC=1
 
-# For debugging and demonstration purposes the lifetime is limited to 60s
-CFLAGS += -DCORD_LT=5
+# For debugging and demonstration purposes the lifetime is limited to 30s
+CFLAGS += -DCORD_LT=30
 
 # Comment this out to disable code in RIOT that does safety checking
 # which is not needed in a production environment but helps in the
@@ -54,3 +55,4 @@ DEVELHELP ?= 1
 QUIET ?= 1
 
 include $(RIOTBASE)/Makefile.include
+
