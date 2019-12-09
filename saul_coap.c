@@ -278,7 +278,7 @@ CborError export_phydat_to_cbor(CborEncoder *encoder, uint8_t *cbor_buf, size_t 
 
     err = cbor_encoder_close_container(encoder, &mapEncoder);
     if (err != CborNoError) {
-	return err;
+        return err;
     }
 
     return CborNoError;
