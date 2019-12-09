@@ -16,6 +16,8 @@ sensors of the same type are ignored. More sensor types need to be
 manually added to the code base. These paths can be used without
 knowledge about the RIOT-intern type representation.
 
+Returns `phydat_t` as CBOR; see below for more info.
+
 ### `/sensor`
 The `/sensor` resource is reachable with an `GET` request. As payload
 it needs the ID of a saul sensor type (as they are defined in
@@ -23,6 +25,8 @@ it needs the ID of a saul sensor type (as they are defined in
 out of the box. However, the systems calling this resource, need
 information about the RIOT-intern saul type IDs. This could be used by
 other RIOT powered boards.
+
+Returns `phydat_t` as CBOR; see below for more info.
 
 [saul.h]: https://github.com/RIOT-OS/RIOT/blob/d42c032998e77e122380b3d270ceedb7fff48cda/drivers/include/saul.h#L74
 
@@ -36,6 +40,44 @@ The idea of these resources is, to offer similar functionality as the
 - `/saul/dev` (POST) needs an ID as argument. Returns some information
   about the sensor for that ID (name and type). 
 
+## Phydat in Concise Binary Object Representation (CBOR)
+
+In all resources by sensor type, we return the [`phydat_t` struct][]
+in the [CBOR][] data format. In the following code block, you can see
+a [CBOR example][] of what could be returned for a temperature sensor:
+
+```
+A3                 # map(3)
+   66              # text(6)
+      76616C756573 # "values"
+   81              # array(1)
+      19 0959      # unsigned(2393)
+   64              # text(4)
+      756E6974     # "unit"
+   02              # unsigned(2)
+   65              # text(5)
+      7363616C65   # "scale"
+   21              # negative(1)
+```
+
+If you want to use this resource, you can parse it to JSON. The
+example above translates to the following JSON object:
+
+``` json
+{"values": [2393], "unit": 2, "scale": -2}
+```
+
+Please see the [list of CBOR implementations][] if you want to use
+this resource. The documentation of the [`phydat_t` struct][]
+explains, how these values have to be interpreted.
+
+[`phydat_t` struct]: https://riot-os.org/api/structphydat__t.html
+
+[cbor]: http://cbor.io/
+
+[cbor example]: http://cbor.me/?bytes=A3(66(76616C756573)-81(19.0959)-64(756E6974)-02-65(7363616C65)-21)
+
+[list of cbor implementations]: http://cbor.io/impls.html
 
 ## Build and Execute
 Enter shell with board command (Phytec)
