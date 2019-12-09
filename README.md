@@ -79,6 +79,17 @@ explains, how these values have to be interpreted.
 
 [list of cbor implementations]: http://cbor.io/impls.html
 
+## Resource Directory (RD)
+A RD is a service that stores information about the COAP-routes of a device, so that a client can search for specific routes
+within a network of devices, instead of querying each device itself (see [RFC CoRE Resource Directory v15](https://tools.ietf.org/html/draft-ietf-core-resource-directory-15)).
+
+Following features are implemented in this project:
+1.  Automatic registration on device startup
+2.  Periodic update of RD entry
+3.  Reregistration when an update fails
+
+The default update time is 30s and should be changed to the wanted time (in seconds) for production, by changing following line in the Makefile: `CFLAGS += -DCORD_LT=30s`.
+
 ## Build and Execute
 Enter shell with board command (Phytec)
 
