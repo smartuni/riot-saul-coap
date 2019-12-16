@@ -93,7 +93,7 @@ static int register_rd(void) {
     puts("Registering with RD now, this may take a short while...");
     
     if (cord_ep_register(&remote, regif) != CORD_EP_OK) {
-	_notify(SAUL_CORD_EP_DEREGISTERED);
+        _notify(SAUL_CORD_EP_DEREGISTERED);
         return 1; 
     }
 
@@ -129,8 +129,8 @@ static void *_reg_runner(void *arg)
                 _notify(SAUL_CORD_EP_UPDATED);
             }
             else {
-	        _notify(SAUL_CORD_EP_DEREGISTERED);
-		saul_cord_ep_register();
+                _notify(SAUL_CORD_EP_DEREGISTERED);
+                saul_cord_ep_register();
                 _set_timer(); 
             }
         }
