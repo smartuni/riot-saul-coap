@@ -38,6 +38,10 @@ USEMODULE += ps
 
 USEMODULE += netstats_l2
 
+# Include tinycbor for data representation
+USEPKG += tinycbor
+INCLUDE += $(RIOTPKG)/tinycbor/cbor.h
+
 CFLAGS += -DGNRC_IPV6_NIB_CONF_SLAAC=1
 
 

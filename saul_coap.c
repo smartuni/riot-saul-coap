@@ -24,11 +24,14 @@
 #include "saul_reg.h"
 #include "fmt.h"
 #include "net/gcoap.h"
+#include "cbor.h"
 
 static ssize_t _saul_cnt_handler(coap_pkt_t* pdu, uint8_t *buf, size_t len, void *ctx);
 static ssize_t _saul_dev_handler(coap_pkt_t* pdu, uint8_t *buf, size_t len, void *ctx);
 static ssize_t _saul_sensortype_handler(coap_pkt_t* pdu, uint8_t *buf, size_t len, void *ctx);
 static ssize_t _saul_type_handler(coap_pkt_t* pdu, uint8_t *buf, size_t len, void *ctx);
+
+CborError export_phydat_to_cbor(CborEncoder *encoder, phydat_t data, int dim);
 
 /* supported sense types, used for context pointer in coap_resource_t */
 uint8_t class_servo = SAUL_ACT_SERVO;
@@ -72,6 +75,8 @@ static gcoap_listener_t _listener = {
     NULL,
     NULL
 };
+
+static uint8_t cbor_buf[64] = { 0 };
 
 static ssize_t _saul_dev_handler(coap_pkt_t* pdu, uint8_t *buf, size_t len, void *ctx)
 {
@@ -185,10 +190,12 @@ static ssize_t _saul_type_handler(coap_pkt_t* pdu, uint8_t *buf, size_t len, voi
     saul_reg_t *dev = saul_reg_find_type(type);
     phydat_t res;
     int dim;
-    size_t resp_len;
+    size_t resp_len, buf_size = 0;
+    CborEncoder encoder, aryEncoder;
+    CborError cbor_err = CborNoError;
 
     gcoap_resp_init(pdu, buf, len, COAP_CODE_CONTENT);
-    coap_opt_add_format(pdu, COAP_FORMAT_TEXT);
+    coap_opt_add_format(pdu, COAP_FORMAT_CBOR);
     resp_len = coap_opt_finish(pdu, COAP_OPT_FINISH_PAYLOAD);
 
     if (dev == NULL) {
@@ -203,26 +210,97 @@ static ssize_t _saul_type_handler(coap_pkt_t* pdu, uint8_t *buf, size_t len, voi
         }
     }
 
-    dim = saul_reg_read(dev, &res);
-    if (dim <= 0) {
-        char *err = "no values found";
-        if (pdu->payload_len >= strlen(err)) {
-            memcpy(pdu->payload, err, strlen(err));
-            resp_len += gcoap_response(pdu, buf, len, COAP_CODE_404);
-            return resp_len;
+    cbor_encoder_init(&encoder, cbor_buf, sizeof(cbor_buf), 0);
+
+    cbor_err = cbor_encoder_create_array(&encoder, &aryEncoder, CborIndefiniteLength);
+    if (cbor_err != CborNoError) {
+        return gcoap_response(pdu, buf, len, COAP_CODE_INTERNAL_SERVER_ERROR);
+    }
+
+    while (dev != NULL && cbor_err == CborNoError) {
+        if (dev->driver->type == type) {
+            dim = saul_reg_read(dev, &res);
+
+	    if (dim > 0) {
+                cbor_err = export_phydat_to_cbor(&aryEncoder, res, dim);
+            }
         }
-        else {
-            return gcoap_response(pdu, buf, len, COAP_CODE_404);
+
+        dev = dev->next;
+    }
+
+    cbor_err = cbor_encoder_close_container(&encoder, &aryEncoder);
+    buf_size = cbor_encoder_get_buffer_size(&encoder, cbor_buf);
+
+    if (cbor_err == CborNoError && buf_size > 0 && pdu->payload_len >= buf_size) {
+        memcpy(pdu->payload, cbor_buf, buf_size);
+        resp_len += buf_size;
+    } else {
+        resp_len = gcoap_response(pdu, buf, len, COAP_CODE_INTERNAL_SERVER_ERROR);
+    }
+
+    memset(cbor_buf, 0, sizeof(cbor_buf));
+    return resp_len;
+}
+
+CborError export_phydat_to_cbor(CborEncoder *encoder, phydat_t data, int dim)
+{
+    CborEncoder mapEncoder, aryEncoder;
+    CborError err = CborNoError;
+
+    err = cbor_encoder_create_map(encoder, &mapEncoder, 3);
+    if (err != CborNoError) {
+        return err;
+    }
+
+    err = cbor_encode_text_stringz(&mapEncoder, "values");
+    if (err != CborNoError) {
+        return err;
+    }
+
+    err = cbor_encoder_create_array(&mapEncoder, &aryEncoder, dim);
+    if (err != CborNoError) {
+        return err;
+    }
+
+    for (uint8_t i = 0; i < dim; i++) {
+        err = cbor_encode_int(&aryEncoder, data.val[i]);
+        if (err != CborNoError) {
+            return err;
         }
     }
 
-    /* TODO: Take care of all values. */
-    /* for (uint8_t i = 0; i < dim; i++) {
-       } */
+    err = cbor_encoder_close_container(&mapEncoder, &aryEncoder);
+    if (err != CborNoError) {
+        return err;
+    }
 
-    /* write the response buffer with the request device value */
-    resp_len += fmt_u16_dec((char *)pdu->payload, res.val[0]);
-    return resp_len;
+    err = cbor_encode_text_stringz(&mapEncoder, "unit");
+    if (err != CborNoError) {
+        return err;
+    }
+
+    err = cbor_encode_int(&mapEncoder, data.unit);
+    if (err != CborNoError) {
+        return err;
+    }
+
+    err = cbor_encode_text_stringz(&mapEncoder, "scale");
+    if (err != CborNoError) {
+        return err;
+    }
+
+    err = cbor_encode_int(&mapEncoder, data.scale);
+    if (err != CborNoError) {
+        return err;
+    }
+
+    err = cbor_encoder_close_container(encoder, &mapEncoder);
+    if (err != CborNoError) {
+        return err;
+    }
+
+    return CborNoError;
 }
 
 void saul_coap_init(void)

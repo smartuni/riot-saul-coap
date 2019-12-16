@@ -1,0 +1,132 @@
+% Saul via CoAP (Milestone 3)
+% @MatthiasBraeuer & @seojeongmoon & @rosetree
+% 2019-12-02
+
+# Idea & Outline
+
+Fetch saul sensor data via CoAP.
+
+- Merged Pull Requests
+- Work in Progress
+  - Details on `phydat_t` as CBOR
+- Open Issues
+
+# Merged Pull Request: saul types
+
+As of [#14][], we now support the following saul types:
+
+- Humidity (`/hum`)
+- Pressure (`/press`)
+- Servo (`/servo`)
+- Temperature (`/temp`)
+- Voltage (`/voltage`)
+
+[#4]: https://github.com/rosetree/riot-saul-coap/pull/4
+
+# Merged Pull Request: Code Clean Up
+
+We cleaned the code of this project.
+
+- Replace function `make_msg` with `snprintf` ([#15][])
+- Define type via context instead of wrapping handlers ([#13][])
+
+[#13]: https://github.com/rosetree/riot-saul-coap/pull/13
+[#15]: https://github.com/rosetree/riot-saul-coap/pull/15
+
+# Merged Pull Request: router communication
+
+With [#9][] the Makefile got updates, so that the project can be
+connected to the RIOT router and receives a public IP address.
+
+Allows connection from the Web-App 🌐🥂📱
+
+[#9]: https://github.com/rosetree/riot-saul-coap/pull/9
+
+# Work in Progress
+
+- Register to Raspberry Pi Resource Directory ([#14][])
+- Enable `PUT` for actuator data ([#10][])
+- Respond with phydat as CBOR ([#19][])
+- Encrypt CoAP with DTLS ([#18][])
+
+[#14]: https://github.com/rosetree/riot-saul-coap/issues/14
+[#10]: https://github.com/rosetree/riot-saul-coap/issues/10
+[#19]: https://github.com/rosetree/riot-saul-coap/issues/19
+[#18]: https://github.com/rosetree/riot-saul-coap/issues/18
+
+# WIP: CBOR interface
+
+- Concise Binary Object Representation (CBOR)
+- a data format based on the JSON data model
+- documentation on [cbor.io][] and test on [cbor.me][]
+
+-----
+
+The following JSON object:
+
+``` json
+{
+    "foo": 47,
+    "bar": "baz",
+    "bam": [2, 3, 5, 7]
+}
+```
+
+looks like this in CBOR:
+
+```
+A3 63 666F6F 18 2F 63 626172 63 62617A 63 62616D 84 02 03 05 07
+```
+
+[Explanation on `CBOR.me`][explain]
+
+[cbor.io]: https://cbor.io
+[cbor.me]: http://cbor.me
+[explain]: http://cbor.me/?diag={%22foo%22:%2047,%22bar%22:%20%22baz%22,%22bam%22:%20[2,%203,%205,%207]}
+
+# WIP: `phydat_t` to CBOR
+
+The structure used in saul is [`phydat_t`][].
+
+``` c
+typedef struct {
+    int16_t val[PHYDAT_DIM];
+    uint8_t unit;
+    int8_t scale;
+} phydat_t;
+```
+
+`phydat_t` can be adapted to JSON (and thus CBOR):
+
+``` json
+{
+   "values": [ 41, 43, 47 ],
+   "unit": 51,
+   "scale": 2
+}
+```
+
+[`phydat_t`]: https://riot-os.org/api/structphydat__t.html
+
+# Progress of the CBOR response
+
+- Implemented for `GET` requests of saul sense types.
+- “Works on my machine.”
+- Using the [tinycbor][] package.
+- Affects other projects: Might need some more documentation.
+
+# Open Issues
+
+- Only the first value for each type is returned ([#8][])
+  - only the first device of the requested saul class
+  - only the first value of the selected device (WIP on [#19][])
+- `/saul/dev` should not use `POST` ([#7][])
+- Publish as RIOT package or module ([#17][])
+- Air pressure value from updated RIOT project (@AlexFuhr, [#16][])
+
+[#8]: https://github.com/rosetree/riot-saul-coap/issues/8
+[#7]: https://github.com/rosetree/riot-saul-coap/issues/7
+[#17]: https://github.com/rosetree/riot-saul-coap/issues/17
+[#16]: https://github.com/rosetree/riot-saul-coap/issues/16
+
+# Questions & Discussion
