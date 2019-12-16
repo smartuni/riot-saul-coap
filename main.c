@@ -22,13 +22,12 @@
 #include "msg.h"
 #include "shell.h"
 #include "saul_cord_ep.h"
+#include "saul_coap.h"
 
 #define MAIN_QUEUE_SIZE (4)
 #define CORD_EP_ADDRESS "[fdaa:bb:cc:dd::1]:5683"
 
 static msg_t _main_msg_queue[MAIN_QUEUE_SIZE];
-
-extern void saul_coap_init(void);
 
 /* we will use custom event handler for dumping cord_ep events */
 static void _on_ep_event(saul_cord_ep_event_t event)
