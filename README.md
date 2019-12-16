@@ -1,6 +1,10 @@
 # riot-saul-coap
 
-This application offers saul data via coap.
+This project offers saul data via coap. It’s supposed to be used as an
+external module in RIOT. An example of this is available in the
+[riot-saul-coap-external-wrapper repository][external-wrapper].
+
+[external-wrapper]: https://github.com/rosetree/riot-saul-coap-external-wrapper
 
 ## Available resources
 There are multiple ways supported to receive data from / about
