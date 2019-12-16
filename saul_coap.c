@@ -14,7 +14,7 @@
  * @brief       CoAP endpoint for the SAUL registry
  *
  * @author      Micha Rosenbaum <micha.rosenbaum@haw-hamburg.de>
- *
+ * @author      Matthias Bräuer <matthias.braeuer@haw-hamburg.de>
  * @}
  */
 
@@ -290,3 +290,4 @@ void saul_coap_init(void)
 {
     gcoap_register_listener(&_listener);
 }
+

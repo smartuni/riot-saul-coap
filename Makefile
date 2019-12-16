@@ -36,14 +36,20 @@ USEMODULE += shell_commands
 # additional modules for debugging:
 USEMODULE += ps
 
-USEMODULE += netstats_l2
+# Module for registering to Resource Directory (RD) 
+USEMODULE += cord_ep
 
+# needed so that the board can be reached
+USEMODULE += netstats_l2
+#
 # Include tinycbor for data representation
 USEPKG += tinycbor
 INCLUDE += $(RIOTPKG)/tinycbor/cbor.h
 
 CFLAGS += -DGNRC_IPV6_NIB_CONF_SLAAC=1
 
+# For debugging and demonstration purposes the lifetime is limited to 30s
+CFLAGS += -DCORD_LT=30
 
 # Comment this out to disable code in RIOT that does safety checking
 # which is not needed in a production environment but helps in the
@@ -54,3 +60,4 @@ DEVELHELP ?= 1
 QUIET ?= 1
 
 include $(RIOTBASE)/Makefile.include
+
