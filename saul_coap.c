@@ -27,14 +27,10 @@
 #include "net/gcoap.h"
 #include "cbor.h"
 #include "phydat.h"
-//#include "winch.h"
-
-extern char *make_msg(char *, ...);
 
 static ssize_t _saul_cnt_handler(coap_pkt_t* pdu, uint8_t *buf, size_t len, void *ctx);
 static ssize_t _saul_dev_handler(coap_pkt_t* pdu, uint8_t *buf, size_t len, void *ctx);
 static ssize_t _saul_sensortype_handler(coap_pkt_t* pdu, uint8_t *buf, size_t len, void *ctx);
-static ssize_t _sense_type_responder(coap_pkt_t* pdu, uint8_t *buf, size_t len, uint8_t type);
 static ssize_t _saul_atr_handler(coap_pkt_t* pdu, uint8_t *buf, size_t len, void *ctx);
 static ssize_t _atr_type_responder(coap_pkt_t* pdu, uint8_t *buf, size_t len, uint8_t type);
 
@@ -44,22 +40,28 @@ static ssize_t _sense_hum_handler(coap_pkt_t* pdu, uint8_t *buf, size_t len, voi
 static ssize_t _sense_servo_handler(coap_pkt_t* pdu, uint8_t *buf, size_t len, void *ctx);
 static ssize_t _sense_press_handler(coap_pkt_t* pdu, uint8_t *buf, size_t len, void *ctx);
 static ssize_t _sense_voltage_handler(coap_pkt_t* pdu, uint8_t *buf, size_t len, void *ctx);
-/* winch handler */ 
-//static ssize_t _saul_winch_handler(coap_pkt_t* pdu, uint8_t *buf, size_t len, void *ctx);
+static ssize_t _saul_type_handler(coap_pkt_t* pdu, uint8_t *buf, size_t len, void *ctx);
+
+CborError export_phydat_to_cbor(CborEncoder *encoder, phydat_t data, int dim);
+
+/* supported sense types, used for context pointer in coap_resource_t */
+uint8_t class_servo = SAUL_ACT_SERVO;
+uint8_t class_hum = SAUL_SENSE_HUM;
+uint8_t class_press = SAUL_SENSE_PRESS;
+uint8_t class_temp = SAUL_SENSE_TEMP;
+uint8_t class_voltage = SAUL_SENSE_VOLTAGE;
 
 /* CoAP resources. Must be sorted by path (ASCII order). */
 static const coap_resource_t _resources[] = {
-    { "/hum", COAP_GET, _sense_hum_handler, NULL },
-    { "/press", COAP_GET, _sense_press_handler, NULL },
+    { "/hum", COAP_GET, _saul_type_handler, &class_hum },
+    { "/press", COAP_GET, _saul_type_handler, &class_press },
     { "/saul/cnt", COAP_GET, _saul_cnt_handler, NULL },
     { "/saul/dev", COAP_POST, _saul_dev_handler, NULL },
     {"/saul/atr", COAP_PUT, _saul_atr_handler, NULL},
     { "/sensor", COAP_GET, _saul_sensortype_handler, NULL },
-    { "/servo", COAP_GET, _sense_servo_handler, NULL },
-    { "/temp", COAP_GET, _sense_temp_handler, NULL },
-    { "/voltage", COAP_GET, _sense_voltage_handler, NULL },
-    //{ "/winch", COAP_PUT, _saul_winch_handler, NULL},
-
+    { "/servo", COAP_GET, _saul_type_handler, &class_servo },
+    { "/temp", COAP_GET, _saul_type_handler, &class_temp },
+    { "/voltage", COAP_GET, _saul_type_handler, &class_voltage },
 };
 
 static gcoap_listener_t _listener = {
@@ -68,6 +70,8 @@ static gcoap_listener_t _listener = {
     NULL,
     NULL
 };
+
+static uint8_t cbor_buf[64] = { 0 };
 
 static ssize_t _saul_dev_handler(coap_pkt_t* pdu, uint8_t *buf, size_t len, void *ctx)
 {
@@ -104,22 +108,30 @@ static ssize_t _saul_dev_handler(coap_pkt_t* pdu, uint8_t *buf, size_t len, void
         }
     }
     else {
-        char *payl = make_msg("%i,%s,%s\n",
-                              pos,
-                              saul_class_to_str(dev->driver->type),
-                              dev->name);
+        const char *class_str = saul_class_to_str(dev->driver->type);
+        const char *dev_name = dev->name;
+        size_t class_size = strlen(class_str);
+        size_t dev_size = strlen(dev_name);
+        /* Pos should be maximum 3 digits */
+        size_t max_pos_size = 3;
+        /* The `+4` is necessary because there will
+           be additional 2 commas and one linebreak */
+        size_t payl_size = class_size + dev_size + max_pos_size + 4;
+        char payl[payl_size];
 
-        if (pdu->payload_len >= strlen(payl)) {
-            memcpy(pdu->payload, payl, strlen(payl));
-            free(payl);
+        snprintf(payl, payl_size, "%i,%s,%s\n", pos, class_str, dev_name);
+
+        size_t payl_length = strlen(payl);
+
+        if (pdu->payload_len >= payl_length) {
+            memcpy(pdu->payload, payl, payl_length);
             gcoap_response(pdu, buf, len, COAP_CODE_204);
-            return resp_len + strlen(payl);
+            return resp_len + payl_length;
         }
         else {
             printf("saul_coap: msg buffer (size: %d) too small"
                    " for payload (size: %d)\n",
-                   pdu->payload_len, strlen(payl));
-            free(payl);
+                   pdu->payload_len, payl_length);
             return gcoap_response(pdu, buf, len, COAP_CODE_INTERNAL_SERVER_ERROR);
         }
     }
@@ -155,8 +167,8 @@ static ssize_t _saul_sensortype_handler(coap_pkt_t* pdu, uint8_t *buf, size_t le
 
     int size = coap_get_uri_query(pdu, query);
 
-    // FIXME: extract the type number from the query, which has to
-    // have the format `&class=123`; read number value from class key
+    /* FIXME: extract the type number from the query, which has to
+       have the format `&class=123`; read number value from class key */
     if (size < 9 || size > 11) {
         return gcoap_response(pdu, buf, len, COAP_CODE_BAD_REQUEST);
     }
@@ -164,18 +176,23 @@ static ssize_t _saul_sensortype_handler(coap_pkt_t* pdu, uint8_t *buf, size_t le
 
     type = atoi(type_number);
 
-    return _sense_type_responder(pdu, buf, len, type);
+    return _saul_type_handler(pdu, buf, len, &type);
 }
 
-static ssize_t _sense_type_responder(coap_pkt_t* pdu, uint8_t *buf, size_t len, uint8_t type)
+static ssize_t _saul_type_handler(coap_pkt_t* pdu, uint8_t *buf, size_t len, void *ctx)
 {
+    uint8_t type = *((uint8_t *)ctx);
     saul_reg_t *dev = saul_reg_find_type(type);
     phydat_t res;
+
     int dim = 0;
-    size_t resp_len;
+    size_t resp_len, buf_size = 0;
+
+    CborEncoder encoder, aryEncoder;
+    CborError cbor_err = CborNoError;
 
     gcoap_resp_init(pdu, buf, len, COAP_CODE_CONTENT);
-    coap_opt_add_format(pdu, COAP_FORMAT_TEXT);
+    coap_opt_add_format(pdu, COAP_FORMAT_CBOR);
     resp_len = coap_opt_finish(pdu, COAP_OPT_FINISH_PAYLOAD);
 
     if (dev == NULL) {
@@ -190,56 +207,97 @@ static ssize_t _sense_type_responder(coap_pkt_t* pdu, uint8_t *buf, size_t len, 
         }
     }
 
-    dim = saul_reg_read(dev, &res);
-    if (dim <= 0) {
-        char *err = "no values found";
-        if (pdu->payload_len >= strlen(err)) {
-            memcpy(pdu->payload, err, strlen(err));
-            resp_len += gcoap_response(pdu, buf, len, COAP_CODE_404);
-            return resp_len;
-        }
-        else {
-            return gcoap_response(pdu, buf, len, COAP_CODE_404);
-        }
+    cbor_encoder_init(&encoder, cbor_buf, sizeof(cbor_buf), 0);
+
+    cbor_err = cbor_encoder_create_array(&encoder, &aryEncoder, CborIndefiniteLength);
+    if (cbor_err != CborNoError) {
+        return gcoap_response(pdu, buf, len, COAP_CODE_INTERNAL_SERVER_ERROR);
     }
 
-    /* TODO: Take care of all values. */
-    /* for (uint8_t i = 0; i < dim; i++) {
-       } */
+    while (dev != NULL && cbor_err == CborNoError) {
+        if (dev->driver->type == type) {
+            dim = saul_reg_read(dev, &res);
 
-    /* write the response buffer with the request device value */
-    resp_len += fmt_u16_dec((char *)pdu->payload, res.val[0]);
+	    if (dim > 0) {
+                cbor_err = export_phydat_to_cbor(&aryEncoder, res, dim);
+            }
+        }
+
+        dev = dev->next;
+    }
+
+    cbor_err = cbor_encoder_close_container(&encoder, &aryEncoder);
+    buf_size = cbor_encoder_get_buffer_size(&encoder, cbor_buf);
+
+    if (cbor_err == CborNoError && buf_size > 0 && pdu->payload_len >= buf_size) {
+        memcpy(pdu->payload, cbor_buf, buf_size);
+        resp_len += buf_size;
+    } else {
+        resp_len = gcoap_response(pdu, buf, len, COAP_CODE_INTERNAL_SERVER_ERROR);
+    }
+
+    memset(cbor_buf, 0, sizeof(cbor_buf));
     return resp_len;
 }
 
-static ssize_t _sense_temp_handler(coap_pkt_t* pdu, uint8_t *buf, size_t len, void *ctx)
+CborError export_phydat_to_cbor(CborEncoder *encoder, phydat_t data, int dim)
 {
-    (void)ctx;
-    return _sense_type_responder(pdu, buf, len, SAUL_SENSE_TEMP);
-}
+    CborEncoder mapEncoder, aryEncoder;
+    CborError err = CborNoError;
 
-static ssize_t _sense_hum_handler(coap_pkt_t* pdu, uint8_t *buf, size_t len, void *ctx)
-{
-    (void)ctx;
-    return _sense_type_responder(pdu, buf, len, SAUL_SENSE_HUM);
-}
+    err = cbor_encoder_create_map(encoder, &mapEncoder, 3);
+    if (err != CborNoError) {
+        return err;
+    }
 
-static ssize_t _sense_servo_handler(coap_pkt_t* pdu, uint8_t *buf, size_t len, void *ctx)
-{
-    (void)ctx;
-    return _sense_type_responder(pdu, buf, len, SAUL_ACT_SERVO);
-}
+    err = cbor_encode_text_stringz(&mapEncoder, "values");
+    if (err != CborNoError) {
+        return err;
+    }
 
-static ssize_t _sense_press_handler(coap_pkt_t* pdu, uint8_t *buf, size_t len, void *ctx)
-{
-    (void)ctx;
-    return _sense_type_responder(pdu, buf, len, SAUL_SENSE_PRESS);
-}
+    err = cbor_encoder_create_array(&mapEncoder, &aryEncoder, dim);
+    if (err != CborNoError) {
+        return err;
+    }
 
-static ssize_t _sense_voltage_handler(coap_pkt_t* pdu, uint8_t *buf, size_t len, void *ctx)
-{
-    (void)ctx;
-    return _sense_type_responder(pdu, buf, len, SAUL_SENSE_VOLTAGE);
+    for (uint8_t i = 0; i < dim; i++) {
+        err = cbor_encode_int(&aryEncoder, data.val[i]);
+        if (err != CborNoError) {
+            return err;
+        }
+    }
+
+    err = cbor_encoder_close_container(&mapEncoder, &aryEncoder);
+    if (err != CborNoError) {
+        return err;
+    }
+
+    err = cbor_encode_text_stringz(&mapEncoder, "unit");
+    if (err != CborNoError) {
+        return err;
+    }
+
+    err = cbor_encode_int(&mapEncoder, data.unit);
+    if (err != CborNoError) {
+        return err;
+    }
+
+    err = cbor_encode_text_stringz(&mapEncoder, "scale");
+    if (err != CborNoError) {
+        return err;
+    }
+
+    err = cbor_encode_int(&mapEncoder, data.scale);
+    if (err != CborNoError) {
+        return err;
+    }
+
+    err = cbor_encoder_close_container(encoder, &mapEncoder);
+    if (err != CborNoError) {
+        return err;
+    }
+
+    return CborNoError;
 }
 
 void saul_coap_init(void)
