@@ -52,7 +52,7 @@ static void _set_timer(void)
  * @param[in] event The event that occurred
  */
 static void _notify(saul_cord_ep_event_t event) {
-    if(_cb != NULL) {
+    if (_cb != NULL) {
         _cb(event);
     }
 }
@@ -93,13 +93,11 @@ static int register_rd(void) {
     puts("Registering with RD now, this may take a short while...");
     
     if (cord_ep_register(&remote, regif) != CORD_EP_OK) {
-	_notify(SAUL_CORD_EP_REGISTERED);
+	_notify(SAUL_CORD_EP_DEREGISTERED);
         return 1; 
     }
-    else {
-	_notify(SAUL_CORD_EP_DEREGISTERED);
-        cord_ep_dump_status();
-    }
+
+    _notify(SAUL_CORD_EP_REGISTERED);
 
     return 0;
 }
@@ -107,9 +105,11 @@ static int register_rd(void) {
 static void saul_cord_ep_register(void) {
     printf("DEBUG: RD-ADDRESS: %s\n", ip);
 
-    while(register_rd()){
+    while (register_rd()) {
         puts("Try again to register to RD deamon");
     }
+
+    cord_ep_dump_status();
 }
 
 static void *_reg_runner(void *arg)
@@ -129,7 +129,7 @@ static void *_reg_runner(void *arg)
                 _notify(SAUL_CORD_EP_UPDATED);
             }
             else {
-		_notify(SAUL_CORD_EP_DEREGISTERED);
+	        _notify(SAUL_CORD_EP_DEREGISTERED);
 		saul_cord_ep_register();
                 _set_timer(); 
             }
