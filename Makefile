@@ -46,7 +46,14 @@ USEMODULE += netstats_l2
 USEPKG += tinycbor
 INCLUDE += $(RIOTPKG)/tinycbor/cbor.h
 
+# Use esp wifi module and add creadentials for Wifi hotspot. TODO: Should be in command line
+USEMODULE += esp_wifi
+CFLAGS += -DESP_WIFI_SSID=\"RIOTHotspot\"
+CFLAGS += -DESP_WIFI_PASS=\"rIoTiSbEsT\"
+
 CFLAGS += -DGNRC_IPV6_NIB_CONF_SLAAC=1
+
+CFLAGS += -DCORD_EP_ADDRESS=\"[fd51:42f8:caae:d922::1]:5683\"
 
 # For debugging and demonstration purposes the lifetime is limited to 30s
 CFLAGS += -DCORD_LT=30

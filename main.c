@@ -24,7 +24,10 @@
 #include "saul_cord_ep.h"
 
 #define MAIN_QUEUE_SIZE (4)
+
+#ifndef CORD_EP_ADDRESS
 #define CORD_EP_ADDRESS "[fdaa:bb:cc:dd::1]:5683"
+#endif
 
 static msg_t _main_msg_queue[MAIN_QUEUE_SIZE];
 
