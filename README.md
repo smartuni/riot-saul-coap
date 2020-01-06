@@ -95,6 +95,10 @@ Enter shell with board command (Phytec)
 
     SERIAL=... BOARD=pba-d-01-kw2x BUILD_IN_DOCKER=1 make all flash term
 
+Enter shell with board command (ESP-WROOM-32)
+
+    SERIAL=... BOARD=esp32-wroom-32 BUILD_IN_DOCKER=1 make all flash term
+
 To distinguish multiple boards using SERIAL number
 
     make list-ttys 
