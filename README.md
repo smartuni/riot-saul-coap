@@ -94,9 +94,12 @@ Enter shell and execute:
 
 ### ESP-WROOM-32
 Add following lines to your Makefile (Replace `<SSID>` and `<PASSWORD>` by WIFI-Access-Point data):
-    1.  `USEMODULE += esp_wifi`
-    2.  `CFLAGS += -DESP_WIFI_SSID=\"<SSID>\"`
-    3.  `CFLAGS += -DESP_WIFI_PASS=\"<PASSWORD>\"`
+
+```Makefile
+USEMODULE += esp_wifi
+CFLAGS += -DESP_WIFI_SSID=\"<SSID>\"
+CFLAGS += -DESP_WIFI_PASS=\"<PASSWORD>\"
+```
 
 Enter shell and execute:
 
