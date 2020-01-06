@@ -26,12 +26,14 @@
 #include "net/gcoap.h"
 #include "cbor.h"
 
+#include "saul_coap.h"
+
 static ssize_t _saul_cnt_handler(coap_pkt_t* pdu, uint8_t *buf, size_t len, void *ctx);
 static ssize_t _saul_dev_handler(coap_pkt_t* pdu, uint8_t *buf, size_t len, void *ctx);
 static ssize_t _saul_sensortype_handler(coap_pkt_t* pdu, uint8_t *buf, size_t len, void *ctx);
 static ssize_t _saul_type_handler(coap_pkt_t* pdu, uint8_t *buf, size_t len, void *ctx);
 
-CborError export_phydat_to_cbor(CborEncoder *encoder, uint8_t *cbor_buf, size_t buf_len, phydat_t data, int dim);
+CborError export_phydat_to_cbor(CborEncoder *encoder, phydat_t data, int dim);
 
 /* supported sense types, used for context pointer in coap_resource_t */
 uint8_t class_servo = SAUL_ACT_SERVO;
@@ -173,8 +175,9 @@ static ssize_t _saul_type_handler(coap_pkt_t* pdu, uint8_t *buf, size_t len, voi
     saul_reg_t *dev = saul_reg_find_type(type);
     phydat_t res;
     int dim;
-    size_t resp_len;
-    CborEncoder encoder;
+    size_t resp_len, buf_size = 0;
+    CborEncoder encoder, aryEncoder;
+    CborError cbor_err = CborNoError;
 
     gcoap_resp_init(pdu, buf, len, COAP_CODE_CONTENT);
     coap_opt_add_format(pdu, COAP_FORMAT_CBOR);
@@ -192,22 +195,27 @@ static ssize_t _saul_type_handler(coap_pkt_t* pdu, uint8_t *buf, size_t len, voi
         }
     }
 
-    dim = saul_reg_read(dev, &res);
-    if (dim <= 0) {
-        char *err = "no values found";
-        if (pdu->payload_len >= strlen(err)) {
-            memcpy(pdu->payload, err, strlen(err));
-            resp_len += gcoap_response(pdu, buf, len, COAP_CODE_404);
-            return resp_len;
-        }
-        else {
-            return gcoap_response(pdu, buf, len, COAP_CODE_404);
-        }
+    cbor_encoder_init(&encoder, cbor_buf, sizeof(cbor_buf), 0);
+
+    cbor_err = cbor_encoder_create_array(&encoder, &aryEncoder, CborIndefiniteLength);
+    if (cbor_err != CborNoError) {
+        return gcoap_response(pdu, buf, len, COAP_CODE_INTERNAL_SERVER_ERROR);
     }
 
-    CborError cbor_err = export_phydat_to_cbor(&encoder, cbor_buf, sizeof(cbor_buf), res, dim);
+    while (dev != NULL && cbor_err == CborNoError) {
+        if (dev->driver->type == type) {
+            dim = saul_reg_read(dev, &res);
 
-    size_t buf_size = cbor_encoder_get_buffer_size(&encoder, cbor_buf);
+	    if (dim > 0) {
+                cbor_err = export_phydat_to_cbor(&aryEncoder, res, dim);
+            }
+        }
+
+        dev = dev->next;
+    }
+
+    cbor_err = cbor_encoder_close_container(&encoder, &aryEncoder);
+    buf_size = cbor_encoder_get_buffer_size(&encoder, cbor_buf);
 
     if (cbor_err == CborNoError && buf_size > 0 && pdu->payload_len >= buf_size) {
         memcpy(pdu->payload, cbor_buf, buf_size);
@@ -220,15 +228,10 @@ static ssize_t _saul_type_handler(coap_pkt_t* pdu, uint8_t *buf, size_t len, voi
     return resp_len;
 }
 
-CborError export_phydat_to_cbor(CborEncoder *encoder, uint8_t *cbor_buf, size_t buf_len, phydat_t data, int dim)
+CborError export_phydat_to_cbor(CborEncoder *encoder, phydat_t data, int dim)
 {
     CborEncoder mapEncoder, aryEncoder;
     CborError err = CborNoError;
-
-    cbor_encoder_init(encoder, cbor_buf, buf_len, 0);
-    if (err != CborNoError) {
-        return err;
-    }
 
     err = cbor_encoder_create_map(encoder, &mapEncoder, 3);
     if (err != CborNoError) {
