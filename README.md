@@ -87,10 +87,26 @@ Following features are implemented in this project:
 The default update time is 30s and should be changed to the wanted time (in seconds) for production, by changing following line in the Makefile: `CFLAGS += -DCORD_LT=30s`.
 
 ## Build and Execute
-Enter shell with board command (Phytec)
+### Phytec Board
+Enter shell and execute:
 
     SERIAL=... BOARD=pba-d-01-kw2x BUILD_IN_DOCKER=1 make all flash term
 
+### ESP-WROOM-32
+Add following lines to your Makefile (Replace `<SSID>` and `<PASSWORD>` by WIFI-Access-Point data):
+
+```Makefile
+USEMODULE += esp_wifi
+CFLAGS += -DESP_WIFI_SSID=\"<SSID>\"
+CFLAGS += -DESP_WIFI_PASS=\"<PASSWORD>\"
+```
+
+Enter shell and execute:
+
+    SERIAL=... BOARD=esp32-wroom-32 BUILD_IN_DOCKER=1 make all flash term
+
+### Note
 To distinguish multiple boards using SERIAL number
 
     make list-ttys 
+
