@@ -36,30 +36,30 @@ static ssize_t _saul_type_handler(coap_pkt_t* pdu, uint8_t *buf, size_t len, voi
 CborError export_phydat_to_cbor(CborEncoder *encoder, phydat_t data, int dim);
 
 /* supported sense types, used for context pointer in coap_resource_t */
-uint8_t class_servo = SAUL_ACT_SERVO;
-uint8_t class_hum = SAUL_SENSE_HUM;
-uint8_t class_press = SAUL_SENSE_PRESS;
-uint8_t class_temp = SAUL_SENSE_TEMP;
-uint8_t class_voltage = SAUL_SENSE_VOLTAGE;
+/*uint8_t class_servo = SAUL_ACT_SERVO;
+  uint8_t class_hum = SAUL_SENSE_HUM;
+  uint8_t class_press = SAUL_SENSE_PRESS;
+  uint8_t class_temp = SAUL_SENSE_TEMP;
+  uint8_t class_voltage = SAUL_SENSE_VOLTAGE;*/
 
 /* CoAP resources. Must be sorted by path (ASCII order). */
-static const coap_resource_t _resources[] = {
-    { "/hum", COAP_GET, _saul_type_handler, &class_hum },
-    { "/press", COAP_GET, _saul_type_handler, &class_press },
-    { "/saul/cnt", COAP_GET, _saul_cnt_handler, NULL },
-    { "/saul/dev", COAP_POST, _saul_dev_handler, NULL },
-    { "/sensor", COAP_GET, _saul_sensortype_handler, NULL },
-    { "/servo", COAP_GET, _saul_type_handler, &class_servo },
-    { "/temp", COAP_GET, _saul_type_handler, &class_temp },
-    { "/voltage", COAP_GET, _saul_type_handler, &class_voltage },
-};
+/*static const coap_resource_t _resources[] = {
+  { "/hum", COAP_GET, _saul_type_handler, &class_hum },
+  { "/press", COAP_GET, _saul_type_handler, &class_press },
+  { "/saul/cnt", COAP_GET, _saul_cnt_handler, NULL },
+  { "/saul/dev", COAP_POST, _saul_dev_handler, NULL },
+  { "/sensor", COAP_GET, _saul_sensortype_handler, NULL },
+  { "/servo", COAP_GET, _saul_type_handler, &class_servo },
+  { "/temp", COAP_GET, _saul_type_handler, &class_temp },
+  { "/voltage", COAP_GET, _saul_type_handler, &class_voltage },
+  };
 
-static gcoap_listener_t _listener = {
-    &_resources[0],
-    sizeof(_resources) / sizeof(_resources[0]),
-    NULL,
-    NULL
-};
+  static gcoap_listener_t _listener = {
+  &_resources[0],
+  sizeof(_resources) / sizeof(_resources[0]),
+  NULL,
+  NULL
+  };*/
 
 static uint8_t cbor_buf[64] = { 0 };
 
@@ -206,7 +206,7 @@ static ssize_t _saul_type_handler(coap_pkt_t* pdu, uint8_t *buf, size_t len, voi
         if (dev->driver->type == type) {
             dim = saul_reg_read(dev, &res);
 
-	    if (dim > 0) {
+            if (dim > 0) {
                 cbor_err = export_phydat_to_cbor(&aryEncoder, res, dim);
             }
         }
@@ -288,8 +288,57 @@ CborError export_phydat_to_cbor(CborEncoder *encoder, phydat_t data, int dim)
     return CborNoError;
 }
 
+coap_resource_t dummy = { "/z/z", COAP_GET, _saul_type_handler, NULL };
+
+/* CoAP resources. Must be sorted by path (ASCII order). */
+static coap_resource_t _resources[] = {
+    { "/saul/cnt", COAP_GET, _saul_cnt_handler, NULL },
+    { "/saul/dev", COAP_POST, _saul_dev_handler, NULL },
+    { "/sensor", COAP_GET, _saul_sensortype_handler, NULL },
+    dummy,
+    dummy, dummy, dummy, dummy,
+    dummy, dummy, dummy, dummy,
+    dummy, dummy, dummy, dummy,
+};
+
+static gcoap_listener_t _listener = {
+    (const coap_resource_t*) &_resources[0],
+    3,
+    NULL,
+    NULL
+};
+
 void saul_coap_init(void)
 {
+    int i = 0,
+        type_resource_exists = 0,
+        resources_length = _listener.resources_len,
+        max_number_of_resources = sizeof(_resources) / sizeof(_resources[0]);
+
+    uint8_t type = 0;
+
+    saul_reg_t *dev = saul_reg;
+
+    while (dev != NULL && resources_length < max_number_of_resources) {
+        type_resource_exists = 0;
+        for (i = 0; i < resources_length; i++) {
+            type = *((uint8_t *)_resources[i].context);
+            if (type == dev->driver->type) {
+                type_resource_exists = 1;
+                break;
+            }
+        }
+
+        if (type_resource_exists == 0) {
+            _resources[resources_length].path[3] = (char) 0x61 + resources_length;
+            _resources[resources_length].context = &dev->driver->type;
+            resources_length++;
+        }
+
+        dev = dev->next;
+    }
+
+    _listener.resources_len = resources_length;
+
     gcoap_register_listener(&_listener);
 }
-
