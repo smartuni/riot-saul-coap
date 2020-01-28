@@ -1,0 +1,72 @@
+#+title: Project Presentation
+#+subtitle: RIOT im Internet of Things, Milestone 1
+#+author: github.com/rosetree
+
+#+startup: beamer
+#+options: H:1 toc:nil
+#+latex_class: beamer
+#+latex_class_options: [presentation,smaller]
+#+beamer_theme: default
+#+latex_header: \usepackage[ngerman]{babel}
+
+* COMMENT Readme
+
+  - Export :: C-c C-e l P
+
+  - Notes ::
+    + see [[http://tug.ctan.org/macros/latex/contrib/beamer/doc/beameruserguide.pdf][section 19 of the beamer user guide]]
+    + latex_header: \usepackage{pgfpages}
+    + latex_header: \setbeameroption{show only notes}
+    + latex_header: \setbeameroption{show notes on second screen}
+
+  - BibLaTeX ::
+    + latex_header: \usepackage[backend=biber,citestyle=authoryear-comp]{biblatex}
+    + latex_header: \addbibresource{references.bib}
+
+  - Documentation ::
+    + [[https://orgmode.org/worg/exporters/beamer/presentation.org.html][Writing Beamer presentations in org-mode]]
+    + [[https://orgmode.org/worg/exporters/beamer/ox-beamer.html][Beamer presentations using ox-beamer]]
+    + M-x info > org > Exporting > Beamer export
+
+* I’ve worked on
+  
+- the RIOT Tutorials on Github
+- controlling a LED with saul & gcoap
+- native build environment on Linux (Debian)
+
+* I’m working on: the =saul_coap= pkg
+
+** about saul_coap                                                 :B_column:
+   :PROPERTIES:
+   :BEAMER_env: column
+   :END:
+- Goal :: Provide an CoAP interface for all saul devices connected to
+          a board and their values.
+- Code :: [[https://github.com/rosetree/riot-saul-coap][github.com/rosetree/riot-saul-coap]]
+          
+#+beamer: \vfill
+#+beamer: \pause
+
+** saul_coap progress                                              :B_column:
+   :PROPERTIES:
+   :BEAMER_env: column
+   :END:
+- [X] =/saul/cnt= replies with number of connected devices 
+- [X] =/saul/dev= replies with device info
+- [ ] =/saul/val= replies with device values
+- [ ] =/saul/set= updating device values?
+
+* Challenges
+
+- In this Project: what’s the plan?
+  #+beamer: \pause
+- With RIOT: where’s the reference?
+  #+beamer: \pause
+- String & memory handling in C
+- REST-ish resources are hard to implement
+  - with C, RIOT, gcoap or
+  - in the IoT
+- CoAP response data payload feels tiny
+- Computer freezes occasionally and needs hard reboot
+  #+beamer: \pause
+  - anyone any ideas?
